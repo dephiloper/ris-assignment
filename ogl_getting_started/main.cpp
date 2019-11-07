@@ -9,8 +9,9 @@
 
 const std::string PROJECT_PATH = "/home/phil/Development/realtime-interactive-systems/ogl_getting_started/";
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+std::string readFile(const std::string& filepath);
 void processInput(GLFWwindow *window);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 /**
  * https://stackoverflow.com/a/2602258

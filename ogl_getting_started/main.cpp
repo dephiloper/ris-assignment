@@ -63,8 +63,10 @@ int main()
     // render triangle
     // -------------------------------------------------------------------
 
-    Shader ourShader(PROJECT_PATH + "shaders/vertex.glsl", PROJECT_PATH + "shaders/fragment.glsl");
-
+    Shader shader(PROJECT_PATH + "shaders/vertex.glsl", PROJECT_PATH + "shaders/fragment.glsl");
+    shader.use();
+    // shader.setFloat("xOffset", 0.5f);
+    
     // Attributes of glVertexAttribPointer
     /* The first parameter specifies which vertex attribute we want to configure. Remember that we specified the
      * location of the position vertex attribute in the vertex shader with layout (location = 0). This sets the
@@ -170,7 +172,7 @@ int main()
          * is instantly displayed to the user, removing all the aforementioned artifacts.
          */
 
-        ourShader.use();
+        //shader.use();
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0); // no need to unbind it every time

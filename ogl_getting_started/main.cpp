@@ -1,15 +1,12 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cert-err58-cpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cmath>
 #include "Shader.h"
+#include "lib/stb_image/stb_image.h"
 
 const std::string PROJECT_PATH = "/home/phil/Development/realtime-interactive-systems/ogl_getting_started/";
+float mixValue = 0.0f;
 
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -26,6 +23,11 @@ void processInput(GLFWwindow *window)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        mixValue = mixValue - 0.01f <= 0.0f ? 0.0f : (mixValue - 0.01f);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        mixValue = mixValue + 0.01f >= 1.0f ? 1.0f : (mixValue + 0.01f);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -64,9 +66,7 @@ int main()
     // -------------------------------------------------------------------
 
     Shader shader(PROJECT_PATH + "shaders/vertex.glsl", PROJECT_PATH + "shaders/fragment.glsl");
-    shader.use();
-    // shader.setFloat("xOffset", 0.5f);
-    
+
     // Attributes of glVertexAttribPointer
     /* The first parameter specifies which vertex attribute we want to configure. Remember that we specified the
      * location of the position vertex attribute in the vertex shader with layout (location = 0). This sets the
@@ -99,17 +99,18 @@ int main()
 
     int nrAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-    std::cout << "Maximum number of attributes " << nrAttributes << std::endl;
 
     // vertices of an triangle
     float vertices[] = {
-        // positions
-         0.5f, -0.5f, 0.0f,    1.0f, 0.0f, 0.0f,    // bottom right
-        -0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    // bottom left
-         0.0f,  0.5f, 0.0f,    0.0f, 0.0f, 1.0f,    // top
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f,   // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f    // top left
     };
     unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 2,   // first triangle
+        0, 1, 3,   // first triangle
+        3, 1, 2,   // second triangle
     };
 
     unsigned int VBO, VAO, EBO; // create unique id
@@ -139,15 +140,84 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // 3. set vertex attribute pointers (need explanation)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)nullptr);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3* sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6* sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // unbind buffer and vertex array so VAO calls don't accidentally modify VAO, but it's not necessary
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(VAO);
+
+    stbi_set_flip_vertically_on_load(true);
+
+    unsigned int texture0, texture1;
+    glGenTextures(1, &texture0);
+    glBindTexture(GL_TEXTURE_2D, texture0);
+
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load((PROJECT_PATH + "assets/container.jpg").c_str(), &width, &height, &nrChannels, 0);
+    if (data) {
+        // glTexImage2D parameters
+        /* The first argument specifies the texture target; setting this to GL_TEXTURE_2D means this operation will generate a texture on the currently bound texture object at the same target (so any textures bound to targets GL_TEXTURE_1D or GL_TEXTURE_3D will not be affected).
+         * The second argument specifies the mipmap level for which we want to create a texture for if you want to set each mipmap level manually, but we'll leave it at the base level which is 0.
+         * The third argument tells OpenGL in what kind of format we want to store the texture. Our image has only RGB values so we'll store the texture with RGB values as well.
+         * The 4th and 5th argument sets the width and height of the resulting texture. We stored those earlier when loading the image so we'll use the corresponding variables.
+         * The next argument should always be 0 (some legacy stuff).
+         * The 7th and 8th argument specify the format and datatype of the source image. We loaded the image with RGB values and stored them as chars (bytes) so we'll pass in the corresponding values.
+         * The last argument is the actual image data.
+         */
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+
+
+    // free image resources
+    stbi_image_free(data);
+
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    data = stbi_load((PROJECT_PATH + "assets/awesomeface.png").c_str(), &width, &height, &nrChannels, 0);
+    if (data) {
+        // glTexImage2D parameters
+        /* The first argument specifies the texture target; setting this to GL_TEXTURE_2D means this operation will generate a texture on the currently bound texture object at the same target (so any textures bound to targets GL_TEXTURE_1D or GL_TEXTURE_3D will not be affected).
+         * The second argument specifies the mipmap level for which we want to create a texture for if you want to set each mipmap level manually, but we'll leave it at the base level which is 0.
+         * The third argument tells OpenGL in what kind of format we want to store the texture. Our image has only RGB values so we'll store the texture with RGB values as well.
+         * The 4th and 5th argument sets the width and height of the resulting texture. We stored those earlier when loading the image so we'll use the corresponding variables.
+         * The next argument should always be 0 (some legacy stuff).
+         * The 7th and 8th argument specify the format and datatype of the source image. We loaded the image with RGB values and stored them as chars (bytes) so we'll pass in the corresponding values.
+         * The last argument is the actual image data.
+         */
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+
+    stbi_image_free(data);
+
+    shader.use();
+    shader.setInt("texture0", 0);
+    shader.setInt("texture1", 1);
 
     // render loop
     // -----------
@@ -172,7 +242,12 @@ int main()
          * is instantly displayed to the user, removing all the aforementioned artifacts.
          */
 
-        //shader.use();
+        shader.use();
+        shader.setFloat("mixValue", mixValue);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture1);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0); // no need to unbind it every time
@@ -190,4 +265,3 @@ int main()
     glfwTerminate();
     return 0;
 }
-#pragma clang diagnostic pop

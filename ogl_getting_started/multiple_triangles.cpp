@@ -167,20 +167,18 @@ int main()
 
     glEnableVertexAttribArray(0);
 
-    int nrAttributes;
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-    std::cout << "Maximum number of attributes " << nrAttributes << std::endl;
-
     // vertices of an triangle
     float vertices[] = {
-            0.5f,  0.5f, 0.0f,  // top right
-            0.5f, -0.5f, 0.0f,  // bottom right
-            -0.5f, -0.5f, 0.0f,  // bottom left
-            -0.5f,  0.5f, 0.0f   // top left
+         0.5,  0.5, .0, // right triangle top
+         1.0, -0.5, .0, // right triangle bottom right
+         0.0, -0.5, .0, // right triangle bottom left & left triangle bottom right
+        -1.0, -0.5, .0, // left triangle bottom left
+        -0.5,  0.5, .0  // left triangle top
+
     };
     unsigned int indices[] = {  // note that we start from 0!
-            0, 1, 3,   // first triangle
-            1, 2, 3    // second triangle
+        0, 1, 2,   // first triangle
+        2, 3, 4    // second triangle
     };
 
 

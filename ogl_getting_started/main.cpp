@@ -1,5 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
 
 #include <iostream>
 #include "Shader.h"
@@ -62,7 +65,7 @@ int main()
         return -1;
     }
 
-    // render triangle
+    // render stuff
     // -------------------------------------------------------------------
 
     Shader shader(PROJECT_PATH + "shaders/vertex.glsl", PROJECT_PATH + "shaders/fragment.glsl");
@@ -219,6 +222,8 @@ int main()
     shader.setInt("texture0", 0);
     shader.setInt("texture1", 1);
 
+    unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -243,6 +248,11 @@ int main()
          */
 
         shader.use();
+
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
         shader.setFloat("mixValue", mixValue);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture0);

@@ -1,5 +1,5 @@
-# clion
-.idea/
+# vscode 
+.vscode/
 
 # project
 build/

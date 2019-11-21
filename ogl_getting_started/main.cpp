@@ -13,17 +13,32 @@ const std::string PROJECT_PATH = "/home/phil/Development/university/ris-assignme
 const unsigned int SCREEN_WIDTH = 800;
 const unsigned int SCREEN_HEIGHT = 600;
 
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+
 float fov = 45.0f;
 float mixValue = 0.0f;
 float aspectRatio = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
-float translateX = 0.0f;
-float translateY = 0.0f;
+float cameraSpeed = 0.05f;
+
+float yaw = 0.0f;
+float pitch = 0.0f;
+
+float lastX = SCREEN_WIDTH / 2;
+float lastY = SCREEN_HEIGHT / 2;
+bool firstMouse = true;
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 void processInput(GLFWwindow *window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-void processInput(GLFWwindow *window)
-{
+void processInput(GLFWwindow *window) {
+    cameraSpeed = 2.5f * deltaTime;
+
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
@@ -35,34 +50,75 @@ void processInput(GLFWwindow *window)
     if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        translateX = translateX + 0.1f >= 100.0f ? 100.0f : (translateX + 0.1f);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        translateX = translateX - 0.1f <= -100.0f ? -100.0f : (translateX - 0.1f);
-
+    // move camera
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        translateY = translateY - 0.1f <= -100.0f ? -100.0f : (translateY - 0.1f);
+        cameraPos += cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        translateY = translateY + 0.1f >= 100.0f ? 100.0f : (translateY + 0.1f);
+        cameraPos -= cameraSpeed * cameraFront;
 
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraUp, cameraFront));
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraUp, cameraFront));
+
+    // mixing textures in shader
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
         mixValue = mixValue + 0.01f >= 1.0f ? 1.0f : (mixValue + 0.01f);
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
         mixValue = mixValue - 0.01f <= 0.0f ? 0.0f : (mixValue - 0.01f);
 
+    // changing field of view
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
         fov = fov + 0.5f >= 90.0f ? 90.0f : (fov + 0.5f);
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
         fov = fov - 0.5f <= 10.0f ? 10.0f : (fov - 0.5f);
 
+    // changing aspect ratio
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
         aspectRatio = aspectRatio + 0.1f >= 3.0 ? 3.0f : (aspectRatio + 0.1f);
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         aspectRatio = aspectRatio - 0.1f <= 1.0f ? 1.0f : (aspectRatio - 0.1f);
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    else if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    if(firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+  
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; 
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.05;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if(pitch > 89.0f)
+        pitch = 89.0f;
+    if(pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(front);
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
@@ -85,6 +141,7 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     // glad: load all OpenGL function pointers, check if glad is successfully included
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -177,18 +234,14 @@ int main()
 
     std::vector<glm::vec3> cubePositions = {
         glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
+        glm::vec3( 0.0f,  1.0f,  0.0f),
+        glm::vec3( 0.0f,  2.0f,  0.0f),
+        glm::vec3( 0.0f,  3.0f,  0.0f)
     };
 
     glEnable(GL_DEPTH_TEST);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     unsigned int VBO, VAO; // create unique id
     glGenBuffers(1, &VBO); // create buffer object to corresponding id
@@ -313,6 +366,10 @@ int main()
     // -----------
     while (!glfwWindowShouldClose(window))
     {
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         // input
         processInput(window);
 
@@ -342,13 +399,9 @@ int main()
 
         glm::mat4 projection;
 
-        float camX = sin(glfwGetTime()) * radius;
-        float camZ = cos(glfwGetTime()) * radius;
         // note that we're translating the scene in the reverse direction of where we want to move
         glm::mat4 view;
-        view = glm::lookAt(glm::vec3(camX, 0.0f, camZ),
-                        glm::vec3(0.0f, 0.0f, 0.0f),
-                        glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         projection = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
 
@@ -363,8 +416,8 @@ int main()
         for (int i = 0; i < cubePositions.size(); i++) {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * (i + 1);
-            model = glm::rotate(model, (float)(glfwGetTime() * glm::radians(angle)), glm::vec3(1.0f, 0.3f, 0.5f));
+            //float angle = 20.0f * (i + 1);
+            //model = glm::rotate(model, (float)(glfwGetTime() * glm::radians(angle)), glm::vec3(1.0f, 0.3f, 0.5f));
             unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
             glDrawArrays(GL_TRIANGLES, 0, 36);

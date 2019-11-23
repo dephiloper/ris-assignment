@@ -1,4 +1,4 @@
-#include "Camera.h"
+#include "camera.h"
 
 // Constructor with vectors
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
@@ -39,7 +39,7 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
     if (direction == RIGHT)
         Position += Right * velocity;
 
-    //Position.y = 0;
+    Position.y = 0;
 }
 
 // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.

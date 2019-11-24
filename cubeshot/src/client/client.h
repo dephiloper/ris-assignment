@@ -1,9 +1,5 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include "stb/stb_image.h"
+#ifndef CLIENT_H
+#define CLIENT_H
 
 #include <vector>
 #include <iostream>
@@ -11,35 +7,36 @@
 
 #include "utils/shader.h"
 #include "utils/camera.h"
+#include "world.h"
 
 class Client {
 private:
-    const int SCREEN_WIDTH = 800;
-    const int SCREEN_HEIGHT = 600;
+    const std::string SHADER_DIR = std::filesystem::current_path().string() + "/src/client/shaders/";
     
     GLFWwindow* window;
     Shader shader;
     Camera camera;
-    float deltaTime;
+    World world;
     float lastFrame;
 
+    void init();
+    void render(float deltaTime);
+    void processInput(float deltaTime);
 
 public:
-    unsigned int VAO;
-    const std::string SHADER_DIR = std::filesystem::current_path().string() + "/src/client/shaders/";
-    const std::string ASSETS_DIR = std::filesystem::current_path().string() + "/assets/";
-
+    static const int SCREEN_WIDTH = 800;
+    static const int SCREEN_HEIGHT = 600;
+    
     float mouseX;
     float mouseY;
 
     Client();
-    void init();
     void mainLoop();
-    void processInput();
-    unsigned int loadObject(std::vector<float> vertices, bool hasColor = false, bool hasTexture = false);
-    unsigned int loadTexture(unsigned int vao, std::string texturePath, bool alphaChannel);
     void handleMouseInput(double xPos, double yPos);
+
 };
 
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+
+#endif //CLIENT_H

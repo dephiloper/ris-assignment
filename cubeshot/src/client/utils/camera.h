@@ -50,10 +50,8 @@ public:
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
     void ProcessMouseScroll(float yoffset);
 
-
-
 private:
     // Calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors();
 };
-#endif
+#endif //CAMERA_H

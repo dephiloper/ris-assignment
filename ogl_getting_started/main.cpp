@@ -7,7 +7,7 @@
 
 #include <iostream>
 #include "Shader.h"
-#include "lib/stb_image/stb_image.h"
+#include "lib/stb/stb_image.h"
 #include "Camera.h"
 
 const std::string PROJECT_PATH = "/home/phil/Development/university/ris-assignment/ogl_getting_started/";
@@ -293,7 +293,7 @@ int main()
         shader.use();
         shader.setFloat("mixValue", mixValue);
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)(SCREEN_WIDTH / SCREEN_HEIGHT), 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
         shader.setMat4("projection", projection);
         
         glm::mat4 view = camera.GetViewMatrix();

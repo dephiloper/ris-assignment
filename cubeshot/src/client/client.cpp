@@ -113,7 +113,7 @@ void Client::mainLoop() {
 
         shader.use();
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)(SCREEN_WIDTH / SCREEN_HEIGHT), 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
         shader.setMat4("projection", projection);
         
         glm::mat4 view = camera.GetViewMatrix();

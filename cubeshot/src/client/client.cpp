@@ -14,8 +14,9 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
     client.handleMouseInput(xPos, yPos);
 }
 
-Client::Client() : camera(glm::vec3(0.0f, 0.0f, 3.0f)), world(&shader) {
+Client::Client() : camera(glm::vec3(0.0f, 0.0f, 0.0f)), world(&shader) {
     init();
+    networkManager.start();
     world.setup();
 }
 
@@ -49,7 +50,7 @@ void Client::init() {
     stbi_set_flip_vertically_on_load(true);
 }
 
-void Client::render(float deltaTime) {
+void Client::render() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // state-setting
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state-using (uses current state to retrieve color)
     
@@ -60,12 +61,10 @@ void Client::render(float deltaTime) {
     
     glm::mat4 view = camera.GetViewMatrix();
     shader.setMat4("view", view);
-    world.render(deltaTime);
+    world.render();
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     glfwSwapBuffers(window);
-    glfwPollEvents();
-
 }
 
 void Client::mainLoop() {
@@ -74,8 +73,13 @@ void Client::mainLoop() {
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         processInput(deltaTime);
-        render(deltaTime);
+        world.update(deltaTime);
+        render();
+
+        glfwPollEvents();
     }
+
+    networkManager.stop();
 }
 
 void Client::processInput(float deltaTime) {
@@ -91,13 +95,22 @@ void Client::processInput(float deltaTime) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+        networkManager.inputQueue.push(0);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        networkManager.inputQueue.push(1);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
+        networkManager.inputQueue.push(2);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+        networkManager.inputQueue.push(3);
+
+    // if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    //     camera.ProcessKeyboard(FORWARD, deltaTime);
+    // if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    //     camera.ProcessKeyboard(BACKWARD, deltaTime);
+    // if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    //     camera.ProcessKeyboard(LEFT, deltaTime);
+    // if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    //     camera.ProcessKeyboard(RIGHT, deltaTime);
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);

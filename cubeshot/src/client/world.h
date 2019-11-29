@@ -24,7 +24,8 @@ public:
     const std::string ASSETS_DIR = std::filesystem::current_path().string() + "/assets/";
     explicit World(Shader* shader);
     void setup();
-    void render(float deltaTime);
+    void render();
+    void update(float deltaTime);
 };
 
 #endif //WORLD_H

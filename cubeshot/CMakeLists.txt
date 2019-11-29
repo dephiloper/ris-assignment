@@ -12,4 +12,4 @@ include_directories("/usr/include/" "/usr/include/glm" "lib")
 
 add_executable(cubeshot ${lib_headers} ${lib_sources} ${cubeshot_headers} ${cubeshot_sources})
 
-target_link_libraries(cubeshot "glfw" ${CMAKE_DL_LIBS})
+target_link_libraries(cubeshot "glfw" "pthread" "zmq" ${CMAKE_DL_LIBS})

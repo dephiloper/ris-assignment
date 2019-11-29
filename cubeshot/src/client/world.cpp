@@ -1,4 +1,5 @@
 #include <glad/glad.h>
+#include <chrono>
 #include "world.h"
 
 World::World(Shader* shader) {
@@ -60,7 +61,11 @@ void World::setup() {
     blueprints.insert(std::pair(CUBE_1, std::pair(vao, textureId)));
 }
 
-void World::render(float deltaTime) {
+void World::update(float deltaTime) {
+
+}
+
+void World::render() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, std::get<1>(blueprints.at(CUBE_0)));
 
@@ -75,7 +80,7 @@ void World::render(float deltaTime) {
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
     }
-        glBindVertexArray(0);
+    glBindVertexArray(0);
 }
 
 unsigned int World::loadObject(std::vector<float> vertices, bool hasColor, bool hasTexture) {

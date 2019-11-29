@@ -7,6 +7,7 @@
 
 #include "utils/shader.h"
 #include "utils/camera.h"
+#include "networkmanager.h"
 #include "world.h"
 
 class Client {
@@ -14,13 +15,14 @@ private:
     const std::string SHADER_DIR = std::filesystem::current_path().string() + "/src/client/shaders/";
     
     GLFWwindow* window;
+    NetworkManager networkManager;
     Shader shader;
     Camera camera;
     World world;
     float lastFrame;
 
     void init();
-    void render(float deltaTime);
+    void render();
     void processInput(float deltaTime);
 
 public:

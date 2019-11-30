@@ -23,6 +23,7 @@ int Shader::load(const std::string& vertexPath, const std::string& fragmentPath)
     std::string fragmentSource = readFile(fragmentPath);
     const char* vShaderSource = vertexSource.c_str(); // https://stackoverflow.com/a/30804288
     const char* fShaderSource= fragmentSource.c_str();
+    
 
     // compile the shader
     unsigned int vertex, fragment;
@@ -85,8 +86,10 @@ unsigned int Shader::createShader(const char* shaderSource, GLint shaderType, co
     char infoLog[512];
 
     unsigned int shaderId;
+
     // vertex shader creation and compilation
     shaderId = glCreateShader(shaderType);
+
     glShaderSource(shaderId, 1, &shaderSource, nullptr);
     glCompileShader(shaderId);
 

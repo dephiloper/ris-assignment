@@ -3,11 +3,13 @@
 
 #include <thread>
 #include <atomic>
+#include <string>
 #include "utils/blockingqueue.h"
 #include "zmq.hpp"
 
 class NetworkManager {
 public:
+    explicit NetworkManager(const std::string& ipAddress);
     BlockingQueue<int> inputQueue;
     
     void start();
@@ -15,7 +17,8 @@ public:
 private:
     zmq::context_t context;
     std::thread task;
-    std::atomic<bool> isRunning;
+    std::atomic<bool> isRunning{};
+    std::string ipAddress;
 
     void pushInput();
 };

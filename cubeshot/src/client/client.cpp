@@ -2,6 +2,7 @@
 
 Client client;
 
+
 int main() {
     client.mainLoop();
 }
@@ -14,20 +15,14 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
     client.handleMouseInput(xPos, yPos);
 }
 
-Client::Client() : camera(glm::vec3(0.0f, 0.0f, 0.0f)), world(&shader) {
-    init();
-    networkManager.start();
-    world.setup();
-}
-
-void Client::init() {
+Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), networkManager("localhost:8080") {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // use only subset of core functionality
 
     // glfw window creation, check if window is successfully created, otherwise error
-    window = glfwCreateWindow(800, 600, "OGL_GETTING_STARTED", nullptr, nullptr);
+    window = glfwCreateWindow(renderer.SCREEN_WIDTH, renderer.SCREEN_HEIGHT, "Cubeshot", nullptr, nullptr);
     if (window == nullptr) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -42,29 +37,10 @@ void Client::init() {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         std::cout << "Failed to initialize GLAD" << std::endl;
 
-    // load shaders
-    if (shader.load(SHADER_DIR + "vertex.glsl", SHADER_DIR + "fragment.glsl") != 0)
-        std::cout << "Error loading shaders" << std::endl;
-
     glEnable(GL_DEPTH_TEST);
     stbi_set_flip_vertically_on_load(true);
-}
-
-void Client::render() {
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // state-setting
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state-using (uses current state to retrieve color)
-    
-    shader.use();
-
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
-    shader.setMat4("projection", projection);
-    
-    glm::mat4 view = camera.GetViewMatrix();
-    shader.setMat4("view", view);
-    world.render();
-
-    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-    glfwSwapBuffers(window);
+    renderer.init();
+    networkManager.start();
 }
 
 void Client::mainLoop() {
@@ -72,10 +48,17 @@ void Client::mainLoop() {
         auto currentFrame = (float)glfwGetTime();
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // state-setting
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state-using (uses current state to retrieve color)
+
         processInput(deltaTime);
         world.update(deltaTime);
-        render();
+        renderer.render(camera);
+        renderer.render(world);
 
+        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+        glfwSwapBuffers(window);
         glfwPollEvents();
     }
 

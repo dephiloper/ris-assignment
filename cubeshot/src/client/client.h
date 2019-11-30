@@ -5,32 +5,25 @@
 #include <iostream>
 #include <filesystem>
 
-#include "utils/shader.h"
 #include "utils/camera.h"
+#include "utils/renderer.h"
 #include "networkmanager.h"
 #include "world.h"
 
 class Client {
 private:
-    const std::string SHADER_DIR = std::filesystem::current_path().string() + "/src/client/shaders/";
-    
-    GLFWwindow* window;
+    GLFWwindow* window{};
     NetworkManager networkManager;
-    Shader shader;
     Camera camera;
+    Renderer renderer;
     World world;
-    float lastFrame;
+    float lastFrame{};
 
-    void init();
-    void render();
     void processInput(float deltaTime);
 
 public:
-    static const int SCREEN_WIDTH = 800;
-    static const int SCREEN_HEIGHT = 600;
-    
-    float mouseX;
-    float mouseY;
+    float mouseX{};
+    float mouseY{};
 
     Client();
     void mainLoop();

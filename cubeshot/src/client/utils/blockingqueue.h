@@ -1,3 +1,6 @@
+#ifndef BLOCKINGQUEUE_H
+#define BLOCKINGQUEUE_H
+
 #include <mutex>
 #include <condition_variable>
 #include <queue>
@@ -7,10 +10,10 @@ template <typename T>
 class BlockingQueue
 {
 private:
-    std::mutex              mutex;
+    std::mutex mutex;
     std::condition_variable cvCanPop;
-    std::queue<T>           queue;
-    std::atomic<bool> shutdown;
+    std::queue<T> queue;
+    std::atomic<bool> shutdown{};
 
 public:
     void push(T const& value) {
@@ -35,3 +38,5 @@ public:
     cvCanPop.notify_all();
     }
 };
+
+#endif

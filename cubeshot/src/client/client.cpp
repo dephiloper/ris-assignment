@@ -15,7 +15,7 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
     client.handleMouseInput(xPos, yPos);
 }
 
-Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), networkManager("localhost:8080") {
+Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), networkManager("localhost") {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -60,6 +60,8 @@ void Client::mainLoop() {
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        this->world = networkManager.world;
     }
 
     networkManager.stop();

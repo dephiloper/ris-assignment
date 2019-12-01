@@ -8,7 +8,7 @@
 #include "utils/camera.h"
 #include "utils/renderer.h"
 #include "networkmanager.h"
-#include "world.h"
+#include "../shared/world.h"
 
 class Client {
 private:

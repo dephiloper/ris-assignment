@@ -9,7 +9,8 @@
 class Player {
 private:
 public:
-    Player(glm::vec3 position);
+    Player() = default;
+    Player(unsigned int id, glm::vec3 position);
     unsigned int id;
     glm::vec3 position;
     void update(float deltaTime);

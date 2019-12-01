@@ -8,6 +8,8 @@
 #include <thread>
 #include <map>
 
+
+
 int main() {
     std::map<int, int> world;
     std::cout << "Server online" << std::endl;
@@ -25,23 +27,6 @@ int main() {
             std::cout << data << std::endl;
         }
     });
-
-
-    // std::thread receiveUpdateThread([&context, &world] {
-    //     zmq::socket_t pullSock(context, zmq::socket_type::pull);
-    //     pullSock.bind("tcp://*:5555");
-
-    //     while (1) {
-    //         zmq::message_t mes;
-    //         pullSock.recv(mes, zmq::recv_flags::none);
-    //         int clientId = *reinterpret_cast<const int*>(mes.data());
-    //         world[clientId]++;
-
-    //         for (const auto &[k, v] : world)
-    //             std::cout << "m[" << k << "] = " << v << " " << std::endl;
-
-    //     }
-    // });
 
     // std::thread publishWorldThread([&context, &world] {
     //     std::cout << "publish world created." << std::endl;

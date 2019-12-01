@@ -92,7 +92,7 @@ void Renderer::render(World &world) {
     glBindTexture(GL_TEXTURE_2D, std::get<1>(blueprints.at(CUBE_1)));
 
     glBindVertexArray(std::get<0>(blueprints.at(CUBE_1)));
-
+    
     for (auto const &p : world.players)
     {
         glm::mat4 model = glm::mat4(1.0f);

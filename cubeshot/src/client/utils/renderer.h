@@ -9,9 +9,9 @@
 #include "vector"
 #include "filesystem"
 
-#include "../world.h"
 #include "camera.h"
 #include "shader.h"
+#include "../../shared/world.h"
 
 class Renderer {
 public:

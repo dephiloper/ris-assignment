@@ -15,7 +15,7 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
     client.handleMouseInput(xPos, yPos);
 }
 
-Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), networkManager("localhost") {
+Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), networkManager("localhost", 5555) {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -40,7 +40,7 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), networkManager("localhos
     glEnable(GL_DEPTH_TEST);
     stbi_set_flip_vertically_on_load(true);
     renderer.init();
-    networkManager.start();
+    networkManager.start(networkManager);
 }
 
 void Client::mainLoop() {
@@ -60,8 +60,6 @@ void Client::mainLoop() {
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
         glfwPollEvents();
-
-        this->world = networkManager.world;
     }
 
     networkManager.stop();
@@ -80,13 +78,13 @@ void Client::processInput(float deltaTime) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        networkManager.inputQueue.push(0);
+        std::cout << "up" << std::endl;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        networkManager.inputQueue.push(1);
+        std::cout << "down" << std::endl;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        networkManager.inputQueue.push(2);
+        std::cout << "left" << std::endl;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        networkManager.inputQueue.push(3);
+        std::cout << "right" << std::endl;
 
     // if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     //     camera.ProcessKeyboard(FORWARD, deltaTime);

@@ -7,13 +7,13 @@
 
 #include "utils/camera.h"
 #include "utils/renderer.h"
-#include "networkmanager.h"
+#include "networking/clientnetmanager.h"
 #include "../shared/world.h"
 
 class Client {
 private:
     GLFWwindow* window{};
-    NetworkManager networkManager;
+    ClientNetManager networkManager;
     Camera camera;
     Renderer renderer;
     World world;

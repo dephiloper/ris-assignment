@@ -5,8 +5,8 @@
 #include <condition_variable>
 #include <queue>
 
+template <typename T> 
 // blocking queue from https://stackoverflow.com/a/12805690
-template <typename T>
 class BlockingQueue
 {
 private:
@@ -26,9 +26,13 @@ public:
     T pop() {
         std::unique_lock<std::mutex> lock(this->mutex);
         this->cvCanPop.wait(lock, [=]{ return !this->queue.empty() || this->shutdown; });
-        T rc(std::move(this->queue.back()));
-        this->queue.pop();
-        return rc;
+        if (!this->shutdown) {
+            T value(std::move(this->queue.back()));
+            this->queue.pop();
+            return value;
+        } else {
+            return T();
+        }
     }
     void requestShutdown() {
         {   

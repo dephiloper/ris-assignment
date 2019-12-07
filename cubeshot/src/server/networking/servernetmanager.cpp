@@ -7,7 +7,7 @@ void ServerNetManager::publishData() {
         auto msg = queueOut.pop(); // TODO currently returns just new object when queue is stopped
         if (isRunning.load()) {
             socket.send(zmq::message_t(msg->senderId), zmq::send_flags::sndmore); // TODO send id msg
-            socket.send(zmq::message_t(msg->toBuffer()), zmq::send_flags::dontwait); // TODO send net msg
+            socket.send(zmq::message_t(msg->serialize()), zmq::send_flags::dontwait); // TODO send net msg
         }
     }
 }

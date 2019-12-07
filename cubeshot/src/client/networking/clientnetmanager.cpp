@@ -6,7 +6,7 @@ void ClientNetManager::publishData() {
     while (isRunning.load()) {
         auto msg = queueOut.pop(); // TODO currently returns just new object when queue is stopped
         if (isRunning.load()) {
-            socket.send(zmq::buffer(msg->toBuffer()), zmq::send_flags::dontwait);
+            socket.send(zmq::buffer(msg->serialize()), zmq::send_flags::dontwait);
         }
     }
 }

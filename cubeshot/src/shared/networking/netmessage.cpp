@@ -2,21 +2,25 @@
 
 NetMessage::NetMessage() {}
 
-NetMessage::NetMessage(Command command, std::string senderId) {
-    this->command = command;
+NetMessage::NetMessage(std::string senderId) {
     this->senderId = senderId;
 }
 
-std::vector<char> NetMessage::toBuffer() {
-    char data[sizeof(NetMessage)];
-    std::memcpy(data, this, sizeof(NetMessage));
+std::vector<unsigned char> NetMessage::serialize(const NetMessage& msg) {
+    std::vector<unsigned char> buffer;
+    buffer.resize(sizeof(msg.senderId));
+    std::size_t index = 0;
 
-    std::vector<char> buf;
-    buf.insert(buf.end(), data, data + sizeof(NetMessage));
+    index = Serialization::binary_serialize(buffer, index, msg.senderId);
 
-    return buf;
+    return buffer;
 }
 
-NetMessage NetMessage::fromBuffer(char* buffer) {
-    return *reinterpret_cast<const NetMessage*>(buffer);
+NetMessage NetMessage::deserialize(const std::vector<unsigned char>& buffer) {
+    NetMessage msg;
+    std::size_t index = 0;
+
+    index = Serialization::binary_deserialize(buffer, index, &msg.senderId);
+
+    return msg;
 }

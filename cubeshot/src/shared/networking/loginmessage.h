@@ -9,8 +9,8 @@ public:
     LoginMessage(std::string senderId, std::string username);
     std::string username;
 
-    std::vector<char> toBuffer();
-    static NetMessage fromBuffer(char* buffer);
+    std::vector<unsigned char> serialize(const LoginMessage& msg);
+    static LoginMessage deserialize(const std::vector<unsigned char>& buffer);
 };
 
 #endif // LOGINMESSAGE_H

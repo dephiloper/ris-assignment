@@ -6,17 +6,18 @@
 #include <string>
 #include <iostream>
 
-enum Command : char { LOGIN, LOGOUT, UPDATE };
+#include "../utils/serialization.h"
 
 class NetMessage {
 public:
     NetMessage();
-    NetMessage(Command command, std::string senderId);
-    Command command;
+    NetMessage(std::string senderId);
+    
     std::string senderId;
 
-    std::vector<char> toBuffer();
-    static NetMessage fromBuffer(char* buffer);
+protected:
+    static std::vector<unsigned char> serialize(const NetMessage& msg);
+    static NetMessage deserialize(const std::vector<unsigned char>& buffer);
 };
 
 #endif // NETMESSAGE_H

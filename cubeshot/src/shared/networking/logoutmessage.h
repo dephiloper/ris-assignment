@@ -1,26 +1,25 @@
-#ifndef LOGINMESSAGE_H
-#define LOGINMESSAGE_H
+#ifndef LOGOUTMESSAGE_H
+#define LOGOUTMESSAGE_H
 
 #include "netmessage.h"
-#include <string>
 
-struct LoginMessage : NetMessage {
+struct LogoutMessage : NetMessage {
     std::string serialize() {
         nop::Serializer<nop::StreamWriter<std::stringstream>> serializer;
-        serializer.Write(Command::LOGIN);
+        serializer.Write(Command::LOGOUT);
         serializer.Write(*this);
         return serializer.writer().stream().str();
     }
 
-    static LoginMessage deserialize(std::string data) {
+    static LogoutMessage deserialize(std::string data) {
         nop::Deserializer<nop::StreamReader<std::stringstream>> deserializer;
         deserializer.reader().stream().str(data);
-        LoginMessage msg;
+        LogoutMessage msg;
         deserializer.Read(&msg);
         return msg;
     }
-    
-    NOP_STRUCTURE(LoginMessage, senderId);
+
+    NOP_STRUCTURE(LogoutMessage, senderId);
 };
 
-#endif // LOGINMESSAGE_H
+#endif // LOGOUTMESSAGE_H

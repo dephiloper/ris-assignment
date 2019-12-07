@@ -18,8 +18,32 @@ void ClientNetManager::receiveData() {
         if (zmqMsg.empty()) continue;
 
         std::cout << "receiving message" << std::endl;
-        //std::unique_ptr<NetMessage> msg; // TODO convert from received message
-        //queueIn.push(msg);
+
+        std::string data = std::string(static_cast<char*>(zmqMsg.data()), zmqMsg.size());
+        Command cmd = NetMessage::readCommand(&data);
+        std::shared_ptr<NetMessage> msg;
+
+        switch(cmd) {
+            case Command::LOGIN:
+            {
+                msg = std::make_shared<LoginMessage>(LoginMessage::deserialize(data));
+                std::cout << "login message received" << std::endl;
+                break;
+            }
+            case Command::LOGOUT:
+            {
+                msg = std::make_shared<LogoutMessage>(LogoutMessage::deserialize(data));
+                std::cout << "logout message received" << std::endl;
+                break;
+            }
+            case Command::UPDATE:
+            {
+                std::cout << "update" << std::endl;
+                break;
+            }
+        }
+
+        queueIn.push(msg);
     }
 }
 

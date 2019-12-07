@@ -14,17 +14,41 @@ void ServerNetManager::publishData() {
 
 void ServerNetManager::receiveData() {
     while (isRunning.load()) {
-        zmq::message_t id;
-        socket.recv(id, zmq::recv_flags::none); // timeouts after 200ms
-        if (id.empty()) continue;
+        zmq::message_t idMsg;
+        socket.recv(idMsg, zmq::recv_flags::none); // timeouts after 200ms
+        if (idMsg.empty()) continue;
+        std::string id = std::string(static_cast<char*>(idMsg.data()), idMsg.size());
+
+        std::cout << "id: " << id << std::endl;
 
         zmq::message_t zmqMsg;
         socket.recv(zmqMsg, zmq::recv_flags::none);
         
-        //std::shared_ptr<NetMessage> msg(new NetMessage(MessageType::LOGIN, std::string(static_cast<char*>(id.data()), id.size())));
-        //std::cout << msg->type << std::endl;
-
-        //queueOut.push(msg);
+        std::string data = std::string(static_cast<char*>(zmqMsg.data()), zmqMsg.size());
+        Command cmd = NetMessage::readCommand(&data);
+        std::shared_ptr<NetMessage> msg;
+        
+        switch(cmd) {
+            case Command::LOGIN:
+            {
+                msg = std::make_shared<LoginMessage>(LoginMessage::deserialize(data));
+                std::cout << "login message received" << std::endl;
+                break;
+            }
+            case Command::LOGOUT:
+            {
+                msg = std::make_shared<LogoutMessage>(LogoutMessage::deserialize(data));
+                std::cout << "logout message received" << std::endl;
+                break;
+            }
+            case Command::UPDATE:
+            {
+                std::cout << "update" << std::endl;
+                break;
+            }
+        }
+        msg->senderId = id;
+        queueIn.push(msg);
     }
 }
 

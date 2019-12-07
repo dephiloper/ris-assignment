@@ -12,6 +12,7 @@
 #include "../shared/networking/netmessagehandler.h"
 #include "../shared/networking/netmessage.h"
 #include "../shared/networking/loginmessage.h"
+#include "../shared/networking/logoutmessage.h"
 
 
 #endif // SERVER_H

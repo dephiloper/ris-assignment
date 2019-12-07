@@ -10,6 +10,8 @@
 
 #include "../utils/blockingqueue.h"
 #include "netmessage.h"
+#include "loginmessage.h"
+#include "logoutmessage.h"
 
 
 class NetManager {

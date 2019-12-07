@@ -41,6 +41,8 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), networkManager("localhos
     stbi_set_flip_vertically_on_load(true);
     renderer.init();
     networkManager.start(networkManager);
+    auto lMsg = std::make_shared<LoginMessage>();
+    networkManager.queueOut.push(lMsg);
 }
 
 void Client::mainLoop() {

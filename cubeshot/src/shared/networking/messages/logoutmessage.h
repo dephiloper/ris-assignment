@@ -22,7 +22,7 @@ struct LogoutMessage : NetMessage {
         return msg;
     }
 
-    NOP_STRUCTURE(LogoutMessage, senderId);
+    NOP_STRUCTURE(LogoutMessage);
 };
 
 #endif // LOGOUTMESSAGE_H

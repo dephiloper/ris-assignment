@@ -2,7 +2,6 @@
 #define LOGINMESSAGE_H
 
 #include "netmessage.h"
-#include <string>
 
 struct LoginMessage : NetMessage {
     LoginMessage() = default;
@@ -25,7 +24,7 @@ struct LoginMessage : NetMessage {
         return msg;
     }
     
-    NOP_STRUCTURE(LoginMessage, senderId, receiverId);
+    NOP_STRUCTURE(LoginMessage, receiverId);
 };
 
 #endif // LOGINMESSAGE_H

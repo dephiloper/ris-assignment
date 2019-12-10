@@ -27,7 +27,7 @@ struct UpdateMessage : NetMessage {
         return msg;
     }
     
-    NOP_STRUCTURE(UpdateMessage, senderId, world, players);
+    NOP_STRUCTURE(UpdateMessage, world, players);
 };
 
 #endif // UPDATEMESSAGE_H

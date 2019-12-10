@@ -17,7 +17,7 @@ enum Command: char {LOGIN, LOGOUT, UPDATE};
 struct NetMessage {
     NetMessage() = default;
     NetMessage(const std::string &senderId) : senderId(senderId) {}
-
+    
     std::string senderId;
 
     static Command readCommand(const std::string &data) {
@@ -26,7 +26,7 @@ struct NetMessage {
 
     virtual std::string serialize() = 0;
 
-    NOP_STRUCTURE(NetMessage, senderId);
+    NOP_STRUCTURE(NetMessage);
 };
 
 #endif // NETMESSAGE_H

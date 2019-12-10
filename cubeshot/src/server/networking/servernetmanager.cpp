@@ -38,6 +38,9 @@ void ServerNetManager::receiveData() {
                 break;
             }
         }
+        assert(msg != nullptr);
+
+
         msg->senderId = id;
         queueIn.push(msg);
     }

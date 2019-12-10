@@ -1,11 +1,12 @@
 #ifndef NETMESSAGEHANDLER_H
 #define NETMESSAGEHANDLER_H
 
-#include "netmessage.h"
+#include "messages/netmessage.h"
+#include "../world.h"
 
 class NetMessageHandler {
 public:
-    virtual void handle(const NetMessage& message) = 0;
+    virtual void handle(NetMessage& message) = 0;
 };
 
 #endif // NETMESSAGEHANDLER_H

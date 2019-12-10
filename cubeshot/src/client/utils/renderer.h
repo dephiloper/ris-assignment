@@ -21,8 +21,8 @@ public:
     std::string shaderDir;
 
     void init();
-    void render(World &world);
-    void render(Camera &camera);
+    void render(const World &world);
+    void render(const Camera &camera);
 private:
     Shader shader{};
     enum BlueprintType {CUBE_0, CUBE_1};

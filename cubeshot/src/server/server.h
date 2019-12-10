@@ -8,11 +8,32 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include "networking/servernetmanager.h"
-#include "../shared/networking/netmessagehandler.h"
-#include "../shared/networking/netmessage.h"
-#include "../shared/networking/loginmessage.h"
-#include "../shared/networking/logoutmessage.h"
+#include <typeindex>
+#include <typeinfo>
 
+#include "networking/servernetmanager.h"
+#include "networking/handlers/loginmessagehandler.h"
+#include "networking/handlers/logoutmessagehandler.h"
+#include "../shared/networking/netmessagehandler.h"
+#include "../shared/networking/messages/netmessage.h"
+#include "../shared/networking/messages/loginmessage.h"
+#include "../shared/networking/messages/logoutmessage.h"
+#include "../shared/networking/messages/updatemessage.h"
+#include "../shared/world.h"
+
+class Server {
+private:
+    ServerNetManager netManager;
+    int64_t lastFrame{};
+    bool isRunning = true;
+    World world;
+    std::map<std::type_index, std::shared_ptr<NetMessageHandler>> listeners;
+
+    void processMessages();
+
+public:
+    Server();
+    void mainLoop();
+};
 
 #endif // SERVER_H

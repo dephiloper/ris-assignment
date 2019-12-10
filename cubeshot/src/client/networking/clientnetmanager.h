@@ -3,13 +3,15 @@
 
 #include <unistd.h>
 #include "../../shared/networking/netmanager.h"
-#include "../../shared/networking/netmessage.h"
+#include "../../shared/networking/messages/netmessage.h"
 
 class ClientNetManager : public NetManager
 {
 public:
     ClientNetManager(const std::string& ipAddress, const int port);
-
+    void login();
+    void logout();
+    
 protected:
     void publishData();
     void receiveData();

@@ -9,10 +9,11 @@ NetManager::NetManager(zmq::socket_type socketType, const std::string& ipAddress
 void NetManager::start(NetManager& instance) {
     socket = zmq::socket_t(context, socketType);
     socket.setsockopt(ZMQ_RCVTIMEO, 200);
+    //socket.setsockopt(ZMQ_LINGER, 500);
     connect();
     isRunning.store(true);
-    publishTask = std::thread(&NetManager::publishData, std::ref(instance));
-    receiveTask = std::thread(&NetManager::receiveData, std::ref(instance));
+    publishTask = std::thread(&NetManager::publishData, std::ref(*this));
+    receiveTask = std::thread(&NetManager::receiveData, std::ref(*this));
 }
 
 void NetManager::stop() {
@@ -25,5 +26,8 @@ void NetManager::stop() {
     if (receiveTask.joinable())
         receiveTask.join();
     
+    socket.setsockopt(ZMQ_LINGER, 0);
     disconnect();
+    socket.close();
+    context.close();
 }

@@ -1,19 +1,15 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <nop/structure.h>
+#include <string>
 
-class Player {
-private:
-public:
-    Player() = default;
-    Player(unsigned int id, glm::vec3 position);
-    unsigned int id;
-    glm::vec3 position;
-    void update(float deltaTime);
+struct Player {
+    float x;
+    float y;
+    float z;
+
+    NOP_STRUCTURE(Player, x, y, z);
 };
 
 #endif //PLAYER_H

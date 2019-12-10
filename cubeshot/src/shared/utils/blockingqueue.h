@@ -25,21 +25,25 @@ public:
     }
     T pop() {
         std::unique_lock<std::mutex> lock(this->mutex);
-        this->cvCanPop.wait(lock, [=]{ return !this->queue.empty() || this->shutdown; });
+        this->cvCanPop.wait(lock, [=]{ return !this->queue.empty() || this->shutdown.load(); });
         if (!this->shutdown) {
-            T value(std::move(this->queue.back()));
+            T value(std::move(this->queue.front()));
             this->queue.pop();
             return value;
         } else {
-            return T();
+            return {}; // TODO std optional
         }
     }
+    size_t size() {
+        return queue.size();
+    }
+
     void requestShutdown() {
         {   
             std::unique_lock<std::mutex> lock(mutex);
             shutdown = true;
         }
-    cvCanPop.notify_all();
+        cvCanPop.notify_all();
     }
 };
 

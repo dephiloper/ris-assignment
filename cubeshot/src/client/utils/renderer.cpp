@@ -61,17 +61,16 @@ void Renderer::init() {
     blueprints.insert(std::pair(CUBE_1, std::pair(vao, textureId)));
 }
 
-void Renderer::render(Camera &camera) {
+void Renderer::render(const Camera &camera) {
     shader.use();
 
     glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
     shader.setMat4("projection", projection);
-    
     glm::mat4 view = camera.getViewMatrix();
     shader.setMat4("view", view);
 }
 
-void Renderer::render(World &world) {
+void Renderer::render(const World &world) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, std::get<1>(blueprints.at(CUBE_0)));
 
@@ -92,11 +91,11 @@ void Renderer::render(World &world) {
     glBindTexture(GL_TEXTURE_2D, std::get<1>(blueprints.at(CUBE_1)));
 
     glBindVertexArray(std::get<0>(blueprints.at(CUBE_1)));
-    
-    for (auto const &p : world.players)
+
+    for(auto const& [id, p] : world.players)
     {
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(p.position.x, p.position.y, p.position.z));
+        model = glm::translate(model, glm::vec3(p.x, p.y, p.z));
         model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
         unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));

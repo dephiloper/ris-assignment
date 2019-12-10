@@ -2,9 +2,9 @@
 
 Client client;
 
-
 int main() {
     client.mainLoop();
+    return 0;
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
@@ -15,7 +15,7 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
     client.handleMouseInput(xPos, yPos);
 }
 
-Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), networkManager("localhost", 5555) {
+Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 5555) {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -40,9 +40,10 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), networkManager("localhos
     glEnable(GL_DEPTH_TEST);
     stbi_set_flip_vertically_on_load(true);
     renderer.init();
-    networkManager.start(networkManager);
-    auto lMsg = std::make_shared<LoginMessage>();
-    networkManager.queueOut.push(lMsg);
+    netManager.start(netManager);
+    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(UpdateMessage), std::make_unique<UpdateMessageHandler>(&world)));
+    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LoginMessage), std::make_unique<LoginMessageHandler>(&id)));
+    netManager.login();
 }
 
 void Client::mainLoop() {
@@ -55,7 +56,8 @@ void Client::mainLoop() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // state-using (uses current state to retrieve color)
 
         processInput(deltaTime);
-        world.update(deltaTime);
+        processMessages();
+        // TODO update world 
         renderer.render(camera);
         renderer.render(world);
 
@@ -63,8 +65,8 @@ void Client::mainLoop() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    networkManager.stop();
+    netManager.logout();
+    netManager.stop();
 }
 
 void Client::processInput(float deltaTime) {
@@ -111,4 +113,11 @@ void Client::handleMouseInput(double xPos, double yPos) {
     mouseY = (float)yPos;
 
     camera.ProcessMouseMovement(xOffset, yOffset);
+}
+
+void Client::processMessages() {
+    while (netManager.queueIn.size() != 0) {
+        auto msg = netManager.queueIn.pop();
+        listeners[typeid(*msg)]->handle(*msg);
+    }
 }

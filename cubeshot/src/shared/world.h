@@ -1,19 +1,16 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include <nop/structure.h>
 #include <utility>
-#include <vector>
+#include <map>
+
 #include "player.h"
 
-class World {
-private:
-   
-public:
-    World();
-    void update(float deltaTime);
-    std::vector<Player> players;
-    std::vector<char> toBuffer();
-    static World fromBuffer(char* buffer);
+struct World {
+    std::map<std::string, Player> players;
+
+    NOP_STRUCTURE(World, players);
 };
 
 #endif //WORLD_H

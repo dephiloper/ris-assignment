@@ -4,22 +4,32 @@
 #include <vector>
 #include <iostream>
 #include <filesystem>
+#include <typeindex>
+#include <typeinfo>
+#include <map>
 
 #include "utils/camera.h"
 #include "utils/renderer.h"
 #include "networking/clientnetmanager.h"
 #include "../shared/world.h"
+#include "../shared/networking/netmessagehandler.h"
+#include "networking/handlers/updatemessagehandler.h"
+#include "networking/handlers/loginmessagehandler.h"
+
 
 class Client {
 private:
     GLFWwindow* window{};
-    ClientNetManager networkManager;
+    ClientNetManager netManager;
     Camera camera;
     Renderer renderer;
     World world;
     float lastFrame{};
+    std::map<std::type_index, std::shared_ptr<NetMessageHandler>> listeners;
+    std::string id;
 
     void processInput(float deltaTime);
+    void processMessages();
 
 public:
     float mouseX{};

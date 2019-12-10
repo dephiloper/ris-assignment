@@ -4,6 +4,9 @@
 #include "netmessage.h"
 
 struct LogoutMessage : NetMessage {
+    LogoutMessage() = default;
+    LogoutMessage(const std::string &senderId) : NetMessage(senderId) {}
+
     std::string serialize() {
         nop::Serializer<nop::StreamWriter<std::stringstream>> serializer;
         serializer.Write(Command::LOGOUT);
@@ -11,9 +14,9 @@ struct LogoutMessage : NetMessage {
         return serializer.writer().stream().str();
     }
 
-    static LogoutMessage deserialize(std::string data) {
+    static LogoutMessage deserialize(const std::string &data) {
         nop::Deserializer<nop::StreamReader<std::stringstream>> deserializer;
-        deserializer.reader().stream().str(data);
+        deserializer.reader().stream().str(data.substr(1));
         LogoutMessage msg;
         deserializer.Read(&msg);
         return msg;

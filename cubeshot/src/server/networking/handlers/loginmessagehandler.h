@@ -2,6 +2,7 @@
 #define LOGINHANDLER_H
 
 #include <iostream>
+#include <stdlib.h>
 
 #include "../../../shared/networking/messages/loginmessage.h"
 #include "../../../shared/networking/netmessagehandler.h"
@@ -16,4 +17,4 @@ public:
     void handle(NetMessage& message);
 };
 
-#endif // NETMESSAGEHANDLER_H
+#endif // LOGINHANDLER_H

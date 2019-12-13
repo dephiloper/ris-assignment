@@ -12,7 +12,7 @@
 #include <nop/utility/stream_writer.h>
 #include <nop/utility/stream_reader.h>
 
-enum Command: char {LOGIN, LOGOUT, UPDATE};
+enum Command: char {LOGIN, LOGOUT, UPDATE, MOVE};
 
 struct NetMessage {
     NetMessage() = default;

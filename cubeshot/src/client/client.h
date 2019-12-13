@@ -10,6 +10,7 @@
 
 #include "utils/camera.h"
 #include "utils/renderer.h"
+#include "../shared/networking/messages/movemessage.h"
 #include "networking/clientnetmanager.h"
 #include "../shared/world.h"
 #include "../shared/networking/netmessagehandler.h"
@@ -26,7 +27,8 @@ private:
     World world;
     float lastFrame{};
     std::map<std::type_index, std::shared_ptr<NetMessageHandler>> listeners;
-    std::string id;
+    std::string playerId;
+    glm::vec2 inputDir;
 
     void processInput(float deltaTime);
     void processMessages();

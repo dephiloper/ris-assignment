@@ -70,7 +70,7 @@ void Renderer::render(const Camera &camera) {
     shader.setMat4("view", view);
 }
 
-void Renderer::render(const World &world) {
+void Renderer::render(const World &world, const std::string &localPlayerId) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, std::get<1>(blueprints.at(CUBE_0)));
 
@@ -92,8 +92,11 @@ void Renderer::render(const World &world) {
 
     glBindVertexArray(std::get<0>(blueprints.at(CUBE_1)));
 
-    for(auto const& [id, p] : world.players)
+    for (auto const& [id, p] : world.players)
     {
+        if (id == localPlayerId) {
+            continue;
+        }
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(p.x, p.y, p.z));
         model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));

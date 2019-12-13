@@ -37,6 +37,11 @@ void ServerNetManager::receiveData() {
                 msg = std::make_shared<LogoutMessage>(LogoutMessage::deserialize(data));
                 break;
             }
+            case Command::MOVE:
+            {
+                msg = std::make_shared<MoveMessage>(MoveMessage::deserialize(data));
+                break;
+            }
         }
         assert(msg != nullptr);
 

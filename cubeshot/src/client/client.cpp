@@ -39,10 +39,11 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 
 
     glEnable(GL_DEPTH_TEST);
     stbi_set_flip_vertically_on_load(true);
+
     renderer.init();
     netManager.start(netManager);
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(UpdateMessage), std::make_unique<UpdateMessageHandler>(&world)));
-    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LoginMessage), std::make_unique<LoginMessageHandler>(&id)));
+    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LoginMessage), std::make_unique<LoginMessageHandler>(&playerId)));
     netManager.login();
 }
 
@@ -57,9 +58,11 @@ void Client::mainLoop() {
 
         processInput(deltaTime);
         processMessages();
+        auto localPlayer = world.players[playerId];
+        camera.updatePosition(localPlayer.x, localPlayer.y, localPlayer.z);
         // TODO update world 
         renderer.render(camera);
-        renderer.render(world);
+        renderer.render(world, playerId);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
@@ -81,14 +84,20 @@ void Client::processInput(float deltaTime) {
     if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+    glm::vec2 dir(0);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        std::cout << "up" << std::endl;
+        dir.y += 1; 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        std::cout << "down" << std::endl;
+        dir.y -= 1;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        std::cout << "left" << std::endl;
+        dir.x += 1;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        std::cout << "right" << std::endl;
+        dir.x -= 1;
+
+    if (dir != inputDir) {
+        inputDir = dir;
+        netManager.queueOut.push(std::make_shared<MoveMessage>(inputDir));
+    }
 
     // if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     //     camera.ProcessKeyboard(FORWARD, deltaTime);

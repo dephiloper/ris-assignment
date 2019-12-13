@@ -14,11 +14,13 @@
 #include "networking/servernetmanager.h"
 #include "networking/handlers/loginmessagehandler.h"
 #include "networking/handlers/logoutmessagehandler.h"
+#include "networking/handlers/movemessagehandler.h"
 #include "../shared/networking/netmessagehandler.h"
 #include "../shared/networking/messages/netmessage.h"
 #include "../shared/networking/messages/loginmessage.h"
 #include "../shared/networking/messages/logoutmessage.h"
 #include "../shared/networking/messages/updatemessage.h"
+#include "../shared/networking/messages/movemessage.h"
 #include "../shared/world.h"
 
 class Server {

@@ -13,6 +13,7 @@
 #include "messages/loginmessage.h"
 #include "messages/logoutmessage.h"
 #include "messages/updatemessage.h"
+#include "messages/movemessage.h"
 
 
 class NetManager {

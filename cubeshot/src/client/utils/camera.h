@@ -7,12 +7,12 @@
 #include <vector>
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
-enum Camera_Movement {
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT
-};
+// enum Camera_Movement {
+//     FORWARD,
+//     BACKWARD,
+//     LEFT,
+//     RIGHT
+// };
 
 // Default camera values
 const float YAW         = -90.0f;
@@ -45,9 +45,10 @@ public:
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
     Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch);
     glm::mat4 getViewMatrix() const;
-    void ProcessKeyboard(Camera_Movement direction, float deltaTime);
+    //void ProcessKeyboard(Camera_Movement direction, float deltaTime);
     void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
     void ProcessMouseScroll(float yoffset);
+    void updatePosition(float x, float y, float z);
 
 private:
     // Calculates the front vector from the Camera's (updated) Euler Angles

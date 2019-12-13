@@ -21,7 +21,7 @@ public:
     std::string shaderDir;
 
     void init();
-    void render(const World &world);
+    void render(const World &world, const std::string &localPlayerId);
     void render(const Camera &camera);
 private:
     Shader shader{};

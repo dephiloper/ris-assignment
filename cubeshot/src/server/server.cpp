@@ -17,6 +17,7 @@ Server::Server(): netManager(5555) {
     netManager.start(netManager);
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LoginMessage), std::make_unique<LoginMessageHandler>(&netManager, &world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LogoutMessage), std::make_unique<LogoutMessageHandler>(&world)));
+    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(MoveMessage), std::make_unique<MoveMessageHandler>()));
     netManager.queueIn.push(std::make_shared<LoginMessage>("id"));
 }
 

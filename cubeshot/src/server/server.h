@@ -14,14 +14,18 @@
 #include "networking/servernetmanager.h"
 #include "networking/handlers/loginmessagehandler.h"
 #include "networking/handlers/logoutmessagehandler.h"
-#include "networking/handlers/movemessagehandler.h"
+#include "networking/handlers/inputmessagehandler.h"
 #include "../shared/networking/netmessagehandler.h"
 #include "../shared/networking/messages/netmessage.h"
 #include "../shared/networking/messages/loginmessage.h"
 #include "../shared/networking/messages/logoutmessage.h"
 #include "../shared/networking/messages/updatemessage.h"
-#include "../shared/networking/messages/movemessage.h"
+#include "../shared/networking/messages/inputmessage.h"
 #include "../shared/world.h"
+#include "../shared/utils/direction.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 
 class Server {
 private:
@@ -29,9 +33,12 @@ private:
     int64_t lastFrame{};
     bool isRunning = true;
     World world;
+    glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
     std::map<std::type_index, std::shared_ptr<NetMessageHandler>> listeners;
+    std::map<std::string, InputMessage> playerInputs;
 
     void processMessages();
+    void updatePlayers(float deltaTime);
 
 public:
     Server();

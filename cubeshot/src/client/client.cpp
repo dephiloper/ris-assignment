@@ -78,35 +78,25 @@ void Client::processInput(float deltaTime) {
 
     // http://disq.us/p/1nt0anm
     if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_POINT)  ;
+        glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
     if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    glm::vec2 dir(0);
+    char direction = 0;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        dir.y += 1; 
+        direction |= FORWARD; 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        dir.y -= 1;
+        direction |= BACKWARD;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        dir.x += 1;
+        direction |= LEFT;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        dir.x -= 1;
+        direction |= RIGHT;
 
-    if (dir != inputDir) {
-        inputDir = dir;
-        netManager.queueOut.push(std::make_shared<MoveMessage>(inputDir));
-    }
-
-    // if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    //     camera.ProcessKeyboard(FORWARD, deltaTime);
-    // if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    //     camera.ProcessKeyboard(BACKWARD, deltaTime);
-    // if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    //     camera.ProcessKeyboard(LEFT, deltaTime);
-    // if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    //     camera.ProcessKeyboard(RIGHT, deltaTime);
+    //if (input.direction != direction || camera.pitch) {
+    netManager.queueOut.push(std::make_shared<InputMessage>(direction, camera.front));
+    //}
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -121,7 +111,7 @@ void Client::handleMouseInput(double xPos, double yPos) {
     mouseX = (float)xPos;
     mouseY = (float)yPos;
 
-    camera.ProcessMouseMovement(xOffset, yOffset);
+    camera.processMouseMovement(xOffset, yOffset);
 }
 
 void Client::processMessages() {

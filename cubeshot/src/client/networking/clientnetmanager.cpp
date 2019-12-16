@@ -39,6 +39,7 @@ void ClientNetManager::receiveData() {
 
 void ClientNetManager::login() {
     queueOut.push(std::make_shared<LoginMessage>());
+    usleep(500); // TODO check if there is another way.
 }
 
 void ClientNetManager::logout() {

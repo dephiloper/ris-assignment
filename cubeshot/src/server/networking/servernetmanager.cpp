@@ -39,7 +39,7 @@ void ServerNetManager::receiveData() {
             }
             case Command::MOVE:
             {
-                msg = std::make_shared<MoveMessage>(MoveMessage::deserialize(data));
+                msg = std::make_shared<InputMessage>(InputMessage::deserialize(data));
                 break;
             }
         }

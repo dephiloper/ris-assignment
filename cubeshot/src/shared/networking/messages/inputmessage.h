@@ -1,17 +1,19 @@
 #ifndef MOVEMESSAGE_H
 #define MOVEMESSAGE_H
 
-#include "netmessage.h"
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "netmessage.h"
+#include "../../../shared/utils/direction.h"
 
-struct MoveMessage : NetMessage {
-    MoveMessage() = default;
-    MoveMessage(glm::vec2 dir) : xDir(dir.x), zDir(dir.y) { }
-    int xDir = 0;
-    int zDir = 0;
+struct InputMessage : NetMessage {
+    InputMessage() = default;
+    InputMessage(char direction, glm::vec3 front) : direction(direction), front{front.x, front.y, front.z} { }
+    char direction;
+    std::vector<float> front;
+
 
     std::string serialize() {
         nop::Serializer<nop::StreamWriter<std::stringstream>> serializer;
@@ -20,15 +22,15 @@ struct MoveMessage : NetMessage {
         return serializer.writer().stream().str();
     }
 
-    static MoveMessage deserialize(const std::string &data) {
+    static InputMessage deserialize(const std::string &data) {
         nop::Deserializer<nop::StreamReader<std::stringstream>> deserializer;
         deserializer.reader().stream().str(data.substr(1));
-        MoveMessage msg;
+        InputMessage msg;
         deserializer.Read(&msg);
         return msg;
     }
     
-    NOP_STRUCTURE(MoveMessage, xDir, zDir);
+    NOP_STRUCTURE(InputMessage, direction, front);
 };
 
 #endif // MOVEMESSAGE_H

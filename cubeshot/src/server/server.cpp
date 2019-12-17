@@ -62,31 +62,31 @@ void print(std::vector<float> const &input)
 void Server::updatePlayers(float deltaTime) {
     for(auto & [id, p] : world.players) {
         auto input = playerInputs[id];
-        float velocity = 1.0 * deltaTime;
+        float velocity = MOVEMENT_SPEED * deltaTime;
 
         p.front = input.front;
 
-        glm::vec3 front = glm::normalize(glm::vec3(p.front[0], p.front[1], p.front[2]));
-        glm::vec3 right = glm::normalize(glm::cross(front, worldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-
-        std::cout << "front length " << glm::length(front) << std::endl;
-        std::cout << "right length " << glm::length(right) << std::endl;
-
-        glm::vec3 position(p.x, p.y, p.z);
+        // calculate front and right vectors
+        glm::vec3 front = glm::normalize(glm::vec3(p.front[0], 0, p.front[2]));
+        glm::vec3 right = glm::normalize(glm::cross(front, WORLD_UP));
+        
+        glm::vec3 direction(0);
 
         if ((input.direction & FORWARD) == FORWARD)
-            position += front * velocity;
+            direction += front;
         if ((input.direction & BACKWARD) == BACKWARD)
-            position -= front * velocity;
+            direction -= front;
         if ((input.direction & RIGHT) == RIGHT)
-            position += right * velocity;
+            direction += right;
         if ((input.direction & LEFT) == LEFT)
-            position -= right * velocity;
+            direction -= right;
 
-        position.y = 1;
-        p.x = position.x;
-        p.y = position.y;
-        p.z = position.z;
+        if (direction != glm::vec3(0))
+            direction = glm::normalize(direction) * velocity;
+    
+        p.x += direction.x;
+        p.y = 1;
+        p.z += direction.z;
     }  
 
     

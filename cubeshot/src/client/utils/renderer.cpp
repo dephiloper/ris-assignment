@@ -9,55 +9,60 @@ void Renderer::init() {
         std::cout << "Error loading shaders" << std::endl;
 
     std::vector<float> vertices = {
+        // front face
+        -0.5f, -0.5f, -0.5f,  0.5f, 0.5f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.5f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.5f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.5f, 0.5f,
+
+        // back
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.5f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
+         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.5f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        // right
+        -0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 0.5f,
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.5f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        // left    
+         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
+         0.5f,  0.5f, -0.5f,  0.0f, 0.5f,
+         0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.5f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
 
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+        // bottom
+        -0.5f, -0.5f, -0.5f,  0.5f, 0.5f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.5f,
          0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
          0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.5f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.5f, 0.5f,
 
+        // top
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  0.5f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
+         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.5f,
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
     unsigned int vao = loadObject(vertices, false, true);
     unsigned int textureId = loadTexture(vao, assetsDir + "cube0_texture.png", false);
-
     blueprints.insert(std::pair(CUBE_0, std::pair(vao, textureId)));
-    textureId = loadTexture(vao, assetsDir + "cube1_texture.jpg", false);
 
+    textureId = loadTexture(vao, assetsDir + "minion.jpg", false);
     blueprints.insert(std::pair(CUBE_1, std::pair(vao, textureId)));
 }
 
@@ -94,12 +99,17 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
 
     for (auto const& [id, p] : world.players)
     {
-        if (id == localPlayerId) {
+        if (id == localPlayerId)
             continue;
-        }
+        
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(p.x, p.y, p.z));
+        glm::vec3 target = glm::vec3(p.front[0], p.front[1], p.front[2]);
+        glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(p.front[0], p.front[1], p.front[2]));
+        model *= glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
+
         model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+
         unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -177,12 +187,6 @@ unsigned int Renderer::loadTexture(unsigned int vao, const std::string& textureP
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
     int width, height, nrChannels;
     unsigned char *data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
     if (data) {
@@ -196,10 +200,16 @@ unsigned int Renderer::loadTexture(unsigned int vao, const std::string& textureP
          * The last argument is the actual image data.
          */
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         std::cout << "Failed to load texture - path: " << texturePath << std::endl;
     }
+
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     // free image resources
     stbi_image_free(data);

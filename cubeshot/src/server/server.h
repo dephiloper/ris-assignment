@@ -29,11 +29,13 @@
 
 class Server {
 private:
+    const glm::vec3 WORLD_UP = glm::vec3(0.0f, 1.0f, 0.0f);
+    const float MOVEMENT_SPEED = 4.0f;
+
     ServerNetManager netManager;
     int64_t lastFrame{};
     bool isRunning = true;
     World world;
-    glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
     std::map<std::type_index, std::shared_ptr<NetMessageHandler>> listeners;
     std::map<std::string, InputMessage> playerInputs;
 

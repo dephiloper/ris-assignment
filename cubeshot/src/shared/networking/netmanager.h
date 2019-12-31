@@ -10,6 +10,7 @@
 
 #include "../utils/blockingqueue.h"
 #include "messages/netmessage.h"
+#include "messages/initmessage.h"
 #include "messages/loginmessage.h"
 #include "messages/logoutmessage.h"
 #include "messages/updatemessage.h"

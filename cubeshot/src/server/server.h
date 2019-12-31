@@ -41,6 +41,9 @@ private:
 
     void processMessages();
     void updatePlayers(float deltaTime);
+    void publishWorld();
+    bool checkForCollision(glm::vec3 destination, float collisionRadius);
+    glm::vec3 moveAndSlide(glm::vec3 position, glm::vec3 direction);
 
 public:
     Server();

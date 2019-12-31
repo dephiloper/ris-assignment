@@ -48,7 +48,7 @@ public:
     glm::mat4 getViewMatrix() const;
     void processMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
     void ProcessMouseScroll(float yoffset);
-    void updatePosition(float x, float y, float z);
+    void updatePosition(glm::vec3 position);
 
 private:
     // Calculates the front vector from the Camera's (updated) Euler Angles

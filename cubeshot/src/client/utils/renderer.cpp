@@ -81,8 +81,8 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
 
     glBindVertexArray(std::get<0>(blueprints.at(CUBE_0)));
 
-    for (int i = -10; i < 10; i++) {
-        for (int j = -10; j < 10; j++) {
+    for (int i = -5; i < 5; i++) {
+        for (int j = -5; j < 5; j++) {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(j, 0, i));
             unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
@@ -90,6 +90,15 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
     }
+
+    for (auto const& obstacle : world.obstacles) {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, Vector3::toGlm(obstacle.position));
+        unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0);
@@ -103,9 +112,9 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
             continue;
         
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(p.x, p.y, p.z));
-        glm::vec3 target = glm::vec3(p.front[0], p.front[1], p.front[2]);
-        glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(p.front[0], p.front[1], p.front[2]));
+        model = glm::translate(model, Vector3::toGlm(p.position));
+        glm::vec3 target = Vector3::toGlm(p.front);
+        glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
         model *= glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
 
         model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));

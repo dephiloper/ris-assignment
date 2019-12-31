@@ -7,8 +7,6 @@ struct LoginMessage : NetMessage {
     LoginMessage() = default;
     LoginMessage(const std::string &senderId) : NetMessage(senderId) {}
 
-    std::string receiverId;
-
     std::string serialize() {
         nop::Serializer<nop::StreamWriter<std::stringstream>> serializer;
         serializer.Write(Command::LOGIN);
@@ -24,7 +22,7 @@ struct LoginMessage : NetMessage {
         return msg;
     }
     
-    NOP_STRUCTURE(LoginMessage, receiverId);
+    NOP_STRUCTURE(LoginMessage);
 };
 
 #endif // LOGINMESSAGE_H

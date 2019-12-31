@@ -9,7 +9,6 @@ struct UpdateMessage : NetMessage {
     UpdateMessage() = default;
     UpdateMessage(const std::string &senderId) : NetMessage(senderId) {}
     
-    World world;
     std::map<std::string, Player> players;
 
     std::string serialize() {
@@ -27,7 +26,7 @@ struct UpdateMessage : NetMessage {
         return msg;
     }
     
-    NOP_STRUCTURE(UpdateMessage, world, players);
+    NOP_STRUCTURE(UpdateMessage, players);
 };
 
 #endif // UPDATEMESSAGE_H

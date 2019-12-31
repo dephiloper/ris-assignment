@@ -2,17 +2,13 @@
 #define PLAYER_H
 
 #include <nop/structure.h>
-#include <string>
-#include <vector>
+#include "vector3.h"
 
 struct Player {
-    float x;
-    float y;
-    float z;
-    std::vector<float> front;
+    Vector3 position;
+    Vector3 front;
 
-
-    NOP_STRUCTURE(Player, x, y, z, front);
+    NOP_STRUCTURE(Player, position, front);
 };
 
 #endif //PLAYER_H

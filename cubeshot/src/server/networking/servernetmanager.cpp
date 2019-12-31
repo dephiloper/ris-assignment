@@ -6,8 +6,8 @@ void ServerNetManager::publishData() {
     while (isRunning.load()) {
         auto msg = queueOut.pop(); // TODO currently returns just new object when queue is stopped
         if (isRunning.load()) {
-            socket.send(zmq::message_t(msg->senderId), zmq::send_flags::sndmore); // TODO send id msg
-            socket.send(zmq::message_t(msg->serialize()), zmq::send_flags::dontwait); // TODO send net msg
+            socket.send(zmq::message_t(msg->senderId), zmq::send_flags::sndmore);
+            socket.send(zmq::message_t(msg->serialize()), zmq::send_flags::dontwait);
         }
     }
 }
@@ -15,7 +15,7 @@ void ServerNetManager::publishData() {
 void ServerNetManager::receiveData() {
     while (isRunning.load()) {
         zmq::message_t idMsg;
-        socket.recv(idMsg, zmq::recv_flags::none); // timeouts after 200ms
+        socket.recv(idMsg, zmq::recv_flags::none); // timeouts after 10ms
         if (idMsg.empty()) continue;
         std::string id = std::string(static_cast<char*>(idMsg.data()), idMsg.size());
 

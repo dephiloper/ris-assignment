@@ -8,7 +8,7 @@ NetManager::NetManager(zmq::socket_type socketType, const std::string& ipAddress
 
 void NetManager::start(NetManager& instance) {
     socket = zmq::socket_t(context, socketType);
-    socket.setsockopt(ZMQ_RCVTIMEO, 200);
+    socket.setsockopt(ZMQ_RCVTIMEO, 10);
     //socket.setsockopt(ZMQ_LINGER, 500);
     connect();
     isRunning.store(true);

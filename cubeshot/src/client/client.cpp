@@ -42,8 +42,8 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 
 
     renderer.init();
     netManager.start(netManager);
+    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(InitMessage), std::make_unique<InitMessageHandler>(&playerId, &world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(UpdateMessage), std::make_unique<UpdateMessageHandler>(&world)));
-    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LoginMessage), std::make_unique<LoginMessageHandler>(&playerId)));
     netManager.login();
 }
 
@@ -58,9 +58,11 @@ void Client::mainLoop() {
 
         processInput(deltaTime);
         processMessages();
+        
+        // update player
         auto localPlayer = world.players[playerId];
-        camera.updatePosition(localPlayer.x, localPlayer.y, localPlayer.z);
-        // TODO update world 
+        camera.updatePosition(Vector3::toGlm(localPlayer.position));
+        
         renderer.render(camera);
         renderer.render(world, playerId);
 
@@ -115,7 +117,9 @@ void Client::handleMouseInput(double xPos, double yPos) {
 }
 
 void Client::processMessages() {
-    while (netManager.queueIn.size() != 0) {
+    auto queueCount = netManager.queueIn.size();
+    // process only currently received messages
+    for (auto i = 0; i < queueCount; i++) {
         auto msg = netManager.queueIn.pop();
         listeners[typeid(*msg)]->handle(*msg);
     }

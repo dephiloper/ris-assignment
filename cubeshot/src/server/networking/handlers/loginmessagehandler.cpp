@@ -9,9 +9,10 @@ void LoginMessageHandler::handle(NetMessage& message) {
         this->world->players[msg.senderId] = player;
         std::cout << "> player '" << message.senderId << "' logged in" << std::endl;
         
-        auto reply = std::make_shared<LoginMessage>();
+        auto reply = std::make_shared<InitMessage>();
         reply->receiverId = msg.senderId;
         reply->senderId = msg.senderId;
+        reply->world.obstacles = world->obstacles;
         this->netManager->queueOut.push(reply);
     } else {
         std::cout << "> player '" << message.senderId << "' already logged in" << std::endl; 

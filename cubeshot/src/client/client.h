@@ -15,7 +15,7 @@
 #include "../shared/world.h"
 #include "../shared/networking/netmessagehandler.h"
 #include "networking/handlers/updatemessagehandler.h"
-#include "networking/handlers/loginmessagehandler.h"
+#include "networking/handlers/initmessagehandler.h"
 
 
 class Client {

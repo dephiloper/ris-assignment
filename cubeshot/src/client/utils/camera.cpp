@@ -72,6 +72,6 @@ void Camera::updateCameraVectors()
     up    = glm::normalize(glm::cross(right, front));
 }
 
-void Camera::updatePosition(float x, float y, float z) {
-    this->position = glm::vec3(x, y, z);
+void Camera::updatePosition(glm::vec3 position) {
+    this->position = position;
 }

@@ -6,11 +6,13 @@
 #include <map>
 
 #include "player.h"
+#include "obstacle.h"
 
 struct World {
     std::map<std::string, Player> players;
+    std::vector<Obstacle> obstacles;
 
-    NOP_STRUCTURE(World, players);
+    NOP_STRUCTURE(World, obstacles);
 };
 
 #endif //WORLD_H

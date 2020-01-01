@@ -6,6 +6,7 @@
 
 struct Obstacle {
     Vector3 position;
+    float radius = 0.5f;
     NOP_STRUCTURE(Obstacle, position);
 };
 

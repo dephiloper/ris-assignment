@@ -58,9 +58,63 @@ void Renderer::init() {
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    unsigned int vao = loadObject(vertices, false, true);
+    std::vector<float> floorVertices = {
+        // front face
+        -0.5f, -0.5f, -0.5f,   5.0f,  5.0f,
+         0.5f, -0.5f, -0.5f,  10.0f,  5.0f,
+         0.5f,  0.5f, -0.5f,  10.0f, 10.0f,
+         0.5f,  0.5f, -0.5f,  10.0f, 10.0f,
+        -0.5f,  0.5f, -0.5f,   5.0f, 10.0f,
+        -0.5f, -0.5f, -0.5f,   5.0f,  5.0f,
+
+        // back
+        -0.5f, -0.5f,  0.5f,   0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,   5.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,   5.0f,  5.0f,
+         0.5f,  0.5f,  0.5f,   5.0f,  5.0f,
+        -0.5f,  0.5f,  0.5f,   0.0f,  5.0f,
+        -0.5f, -0.5f,  0.5f,   0.0f,  0.0f,
+
+        // right
+        -0.5f,  0.5f,  0.5f,   5.0f,  5.0f,
+        -0.5f,  0.5f, -0.5f,   0.0f,  5.0f,
+        -0.5f, -0.5f, -0.5f,   0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,   0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,   5.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,   5.0f,  5.0f,
+
+        // left    
+         0.5f,  0.5f,  0.5f,   5.0f,  5.0f,
+         0.5f,  0.5f, -0.5f,   0.0f,  5.0f,
+         0.5f, -0.5f, -0.5f,   0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,   0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,   5.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,   5.0f,  5.0f,
+
+        // bottom
+        -0.5f, -0.5f, -0.5f,   5.0f,  5.0f,
+         0.5f, -0.5f, -0.5f,  10.0f,  5.0f,
+         0.5f, -0.5f,  0.5f,  10.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  10.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,   5.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,   5.0f,  5.0f,
+
+        // top
+        -0.5f,  0.5f, -0.5f,   0.0f, 10.0f,
+         0.5f,  0.5f, -0.5f,   5.0f, 10.0f,
+         0.5f,  0.5f,  0.5f,   5.0f,  5.0f,
+         0.5f,  0.5f,  0.5f,   5.0f,  5.0f,
+        -0.5f,  0.5f,  0.5f,   0.0f,  5.0f,
+        -0.5f,  0.5f, -0.5f,   0.0f, 10.0f
+    };
+
+    unsigned int vao = loadObject(floorVertices, false, true);
     unsigned int textureId = loadTexture(vao, assetsDir + "cube0_texture.png", false);
-    blueprints.insert(std::pair(CUBE_0, std::pair(vao, textureId)));
+    blueprints.insert(std::pair(FLOOR, std::pair(vao, textureId)));
+
+    vao = loadObject(vertices, false, true);
+    textureId = loadTexture(vao, assetsDir + "cube0_texture.png", false);
+    blueprints.insert(std::pair(OBSTACLE, std::pair(vao, textureId)));
 
     textureId = loadTexture(vao, assetsDir + "minion.jpg", false);
     blueprints.insert(std::pair(CUBE_1, std::pair(vao, textureId)));
@@ -77,19 +131,20 @@ void Renderer::render(const Camera &camera) {
 
 void Renderer::render(const World &world, const std::string &localPlayerId) {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, std::get<1>(blueprints.at(CUBE_0)));
+    glBindTexture(GL_TEXTURE_2D, std::get<1>(blueprints.at(FLOOR)));
 
-    glBindVertexArray(std::get<0>(blueprints.at(CUBE_0)));
-
-    for (int i = -5; i < 5; i++) {
-        for (int j = -5; j < 5; j++) {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(j, 0, i));
-            unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+    glBindVertexArray(std::get<0>(blueprints.at(FLOOR)));
+    for (auto const& tile : world.tiles) {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, Vector3::toGlm(tile.position));
+        model = glm::scale(model, Vector3::toGlm(tile.scale));
+        unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, 36);
     }
+
+    glBindVertexArray(0);
+    glBindVertexArray(std::get<0>(blueprints.at(OBSTACLE)));
 
     for (auto const& obstacle : world.obstacles) {
         glm::mat4 model = glm::mat4(1.0f);
@@ -116,8 +171,7 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
         glm::vec3 target = Vector3::toGlm(p.front);
         glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
         model *= glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
-
-        model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+        model = glm::scale(model, glm::vec3(PLAYER_SCALE));
 
         unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));

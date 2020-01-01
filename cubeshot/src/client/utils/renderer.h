@@ -12,6 +12,7 @@
 #include "camera.h"
 #include "shader.h"
 #include "../../shared/world.h"
+#include "../../shared/utils/constants.h"
 
 class Renderer {
 public:
@@ -25,7 +26,7 @@ public:
     void render(const Camera &camera);
 private:
     Shader shader{};
-    enum BlueprintType {CUBE_0, CUBE_1};
+    enum BlueprintType {FLOOR, OBSTACLE, CUBE_1};
     std::map<BlueprintType, std::tuple<unsigned int, unsigned int>> blueprints;
     
     unsigned int loadObject(std::vector<float> vertices, bool hasColor = false, bool hasTexture = false);

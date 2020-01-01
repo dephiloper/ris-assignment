@@ -18,9 +18,16 @@ Server::Server(): netManager(5555) {
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LoginMessage), std::make_unique<LoginMessageHandler>(&netManager, &world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LogoutMessage), std::make_unique<LogoutMessageHandler>(&world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(InputMessage), std::make_unique<InputMessageHandler>(&playerInputs)));
+    for (auto i = -1; i <= 1; i++) {
+        for (auto j = -1; j <= 1; j++) {
+            Floor tile;
+            tile.position = Vector3{ i * tile.scale.x, -0.1, j * tile.scale.z };
+            world.tiles.push_back(tile);
+        }
+    }
     //netManager.queueIn.push(std::make_shared<LoginMessage>("id"));
     for (auto i = 0; i < 8; i++) {
-        world.obstacles.push_back(Obstacle{ Vector3{ rand() % 10 - 5.0f, 1.0f, rand() % 10 - 5.0f } });
+        world.obstacles.push_back(Obstacle{ Vector3{ rand() % 10 - 5.0f, 0.5f, rand() % 10 - 5.0f } });
     }
 }
 
@@ -49,7 +56,6 @@ void Server::processMessages() {
         listeners[typeid(*msg)]->handle(*msg);
     }
 }
-
 
 void Server::updatePlayers(float deltaTime) {
     for(auto& [id, p] : world.players) {
@@ -82,35 +88,31 @@ void Server::updatePlayers(float deltaTime) {
 
 glm::vec3 Server::moveAndSlide(glm::vec3 position, glm::vec3 direction) {
     glm::vec3 destination = position;
+    float newX = position.x + direction.x;
+    float newZ = position.z + direction.z;
+    glm::vec3 newPosX = glm::vec3(newX, 1, position.z);
+    glm::vec3 newPosZ = glm::vec3(position.x, 1, newZ);
 
-    glm::vec3 newPosX = glm::vec3(position.x + direction.x, 1, position.z);
-    glm::vec3 newPosZ = glm::vec3(position.x, 1, position.z + direction.z);
-    if (!checkForCollision(newPosX, 0.5f)) {
+    if (!checkForCollision(newPosX, COLLISION_RADIUS))
         destination.x = newPosX.x;
-    } else {
-        std::cout << "collision on x" << std::endl;
-    }
-    if (!checkForCollision(newPosZ, 0.5f)) {
+    if (!checkForCollision(newPosZ, COLLISION_RADIUS))
         destination.z = newPosZ.z;
-    } else {
-        std::cout << "collision on y" << std::endl;
-    }
     
     return destination;
 }
 
-bool Server::checkForCollision(glm::vec3 destination, float collisionRadius) {
+bool Server::checkForCollision(glm::vec3 destination, float playerRadius) {
     for (auto const& obstacle : world.obstacles) {
         float testX = destination.x, testZ = destination.z;
         
-        if (destination.x < obstacle.position.x - collisionRadius)       testX = obstacle.position.x - collisionRadius; // left edge
-        else if (destination.x > obstacle.position.x + collisionRadius)  testX = obstacle.position.x + collisionRadius; // right edge
-        if (destination.z < obstacle.position.z - collisionRadius)       testZ = obstacle.position.z - collisionRadius; // top edge
-        else if (destination.z > obstacle.position.z + collisionRadius)  testZ = obstacle.position.z + collisionRadius; // bottom edge
+        if (destination.x < obstacle.position.x - obstacle.radius)       testX = obstacle.position.x - obstacle.radius; // left edge
+        else if (destination.x > obstacle.position.x + obstacle.radius)  testX = obstacle.position.x + obstacle.radius; // right edge
+        if (destination.z < obstacle.position.z - obstacle.radius)       testZ = obstacle.position.z - obstacle.radius; // top edge
+        else if (destination.z > obstacle.position.z + obstacle.radius)  testZ = obstacle.position.z + obstacle.radius; // bottom edge
 
         float distance = glm::distance(glm::vec2(destination.x, destination.z), glm::vec2(testX, testZ));
         
-        if (distance <= 0.5f) return true;
+        if (distance <= playerRadius) return true;
     }
     return false;
 }

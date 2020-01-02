@@ -12,6 +12,7 @@
 #include <chrono>
 #include <typeindex>
 #include <typeinfo>
+#include <set>
 
 #include "networking/servernetmanager.h"
 #include "networking/handlers/loginmessagehandler.h"
@@ -38,7 +39,7 @@ private:
     bool isRunning = true;
     World world;
     std::map<std::type_index, std::shared_ptr<NetMessageHandler>> listeners;
-    std::map<std::pair<int, int>, Tile> tiles;
+    std::map<std::pair<int, int>, Tile> globalTiles;
     std::map<std::string, InputMessage> playerInputs;
     std::map<std::string, std::pair<int, int>> playerLocations;
 
@@ -48,8 +49,11 @@ private:
     bool checkForCollision(const glm::vec3& destination, float playerRadius);
     glm::vec3 moveAndSlide(const glm::vec3& position, const glm::vec3& direction);
     Tile generateNewTile(int x, int z);
-    std::vector<Tile> getTileArea(const std::pair<int,int>& location);
+    std::vector<Tile> tilesFromLocations(const std::vector<std::pair<int, int>>& locations);
     std::pair<int,int> positionToTileLocation(const Vector3& position);
+    std::vector<std::pair<int, int>> calculateLocationArea(const std::pair<int,int>& location);
+    std::vector<Tile> calculateTileArea(const std::pair<int,int>& location);
+    void removeUnusedTiles();
 public:
     Server();
     void mainLoop();

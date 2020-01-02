@@ -12,7 +12,6 @@ void LoginMessageHandler::handle(NetMessage& message) {
         auto reply = std::make_shared<InitMessage>();
         reply->receiverId = msg.senderId;
         reply->senderId = msg.senderId;
-        reply->world.tiles = world->tiles;
         this->netManager->queueOut.push(reply);
     } else {
         std::cout << "> player '" << message.senderId << "' already logged in" << std::endl; 

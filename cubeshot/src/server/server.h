@@ -38,14 +38,18 @@ private:
     bool isRunning = true;
     World world;
     std::map<std::type_index, std::shared_ptr<NetMessageHandler>> listeners;
+    std::map<std::pair<int, int>, Tile> tiles;
     std::map<std::string, InputMessage> playerInputs;
+    std::map<std::string, std::pair<int, int>> playerLocations;
 
     void processMessages();
     void updatePlayers(float deltaTime);
     void publishWorld();
-    bool checkForCollision(glm::vec3 destination, float playerRadius);
-    glm::vec3 moveAndSlide(glm::vec3 position, glm::vec3 direction);
-
+    bool checkForCollision(const glm::vec3& destination, float playerRadius);
+    glm::vec3 moveAndSlide(const glm::vec3& position, const glm::vec3& direction);
+    Tile generateNewTile(int x, int z);
+    std::vector<Tile> getTileArea(const std::pair<int,int>& location);
+    std::pair<int,int> positionToTileLocation(const Vector3& position);
 public:
     Server();
     void mainLoop();

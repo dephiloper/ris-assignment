@@ -4,7 +4,7 @@ LoginMessageHandler::LoginMessageHandler(NetManager* netManager, World* world) :
 
 void LoginMessageHandler::handle(NetMessage& message) {
     LoginMessage msg = dynamic_cast<LoginMessage&>(message);
-    Player player {rand() % 20 - 10.0f, 0.4f, rand() % 20 - 10.0f};
+    Player player { rand() % 20 - 10.0f, 0.4f, rand() % 20 - 10.0f };
     if (this->world->players.count(msg.senderId) == 0) {
         this->world->players[msg.senderId] = player;
         std::cout << "> player '" << message.senderId << "' logged in" << std::endl;
@@ -12,7 +12,6 @@ void LoginMessageHandler::handle(NetMessage& message) {
         auto reply = std::make_shared<InitMessage>();
         reply->receiverId = msg.senderId;
         reply->senderId = msg.senderId;
-        reply->world.obstacles = world->obstacles;
         reply->world.tiles = world->tiles;
         this->netManager->queueOut.push(reply);
     } else {

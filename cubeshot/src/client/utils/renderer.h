@@ -26,7 +26,7 @@ public:
     void render(const Camera &camera);
 private:
     Shader shader{};
-    enum BlueprintType {FLOOR, OBSTACLE, CUBE_1};
+    enum BlueprintType {TILE, OBSTACLE, CUBE_1};
     std::map<BlueprintType, std::tuple<unsigned int, unsigned int>> blueprints;
     
     unsigned int loadObject(std::vector<float> vertices, bool hasColor = false, bool hasTexture = false);

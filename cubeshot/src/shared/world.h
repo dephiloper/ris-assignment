@@ -7,14 +7,13 @@
 
 #include "player.h"
 #include "obstacle.h"
-#include "floor.h"
+#include "tile.h"
 
 struct World {
     std::map<std::string, Player> players;
-    std::vector<Obstacle> obstacles;
-    std::vector<Floor> tiles;
+    std::vector<Tile> tiles;
 
-    NOP_STRUCTURE(World, obstacles, tiles);
+    NOP_STRUCTURE(World, tiles);
 };
 
 #endif //WORLD_H

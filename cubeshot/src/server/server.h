@@ -45,14 +45,9 @@ private:
 
     void processMessages();
     void updatePlayers(float deltaTime);
-    void publishWorld();
-    bool checkForCollision(const glm::vec3& destination, float playerRadius);
     glm::vec3 moveAndSlide(const glm::vec3& position, const glm::vec3& direction);
-    Tile generateNewTile(int x, int z);
-    std::vector<Tile> tilesFromLocations(const std::vector<std::pair<int, int>>& locations);
-    std::pair<int,int> positionToTileLocation(const Vector3& position);
-    std::vector<std::pair<int, int>> calculateLocationArea(const std::pair<int,int>& location);
-    std::vector<Tile> calculateTileArea(const std::pair<int,int>& location);
+    bool checkForCollision(const glm::vec3& destination, float playerRadius);
+    void publishWorld();
     void removeUnusedTiles();
 public:
     Server();

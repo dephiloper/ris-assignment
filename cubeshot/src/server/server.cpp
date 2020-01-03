@@ -8,10 +8,6 @@ int main() {
     return 0;
 }
 
-int64_t currentMillis() {
-    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-}
-
 Server::Server(): netManager(5555) {
     std::cout << "Server started." << std::endl;
     netManager.start(netManager);
@@ -22,14 +18,14 @@ Server::Server(): netManager(5555) {
 
 void Server::mainLoop() {
     while(isRunning) {
-        auto currentFrame = currentMillis();
+        auto currentFrame = Constants::currentMillis();
         auto deltaTime = (currentFrame - lastFrame) / 1e6f;
         processMessages();
 
         updatePlayers(deltaTime);
         publishWorld();
 
-        auto timeLeft = currentFrame + (1e6 / 60) - currentMillis();
+        auto timeLeft = currentFrame + (1e6 / 60) - Constants::currentMillis();
         usleep(timeLeft < 0 ? 0 : timeLeft);
         if (timeLeft <= 0) std::cout << "\033[1;33mWarning:\033[0m Server doing to much work (time left: " << timeLeft << "us)" << std::endl;
         lastFrame = currentFrame;
@@ -42,13 +38,13 @@ void Server::processMessages() {
     // process only currently received messages
     for (auto i = 0; i < queueCount; i++) {
         auto msg = netManager.queueIn.pop();
-        listeners[typeid(*msg)]->handle(*msg);
+        listeners.at(typeid(*msg))->handle(*msg);
     }
 }
 
 void Server::updatePlayers(float deltaTime) {
     for(auto& [id, p] : world.players) {
-        auto input = playerInputs[id];
+        auto input = playerInputs.at(id);
         float velocity = MOVEMENT_SPEED * deltaTime;
 
         p.front = input.front;
@@ -73,23 +69,24 @@ void Server::updatePlayers(float deltaTime) {
         
         // --- generate tiles for player ---
 
-        auto currentLocation = positionToTileLocation(p.position);
+        auto currentLocation = Tile::positionToTileLocation(p.position);
         
         // player is new or player is entered new tile
-        if (playerLocations.count(id) == 0 || playerLocations[id] != currentLocation) {
+        if (playerLocations.count(id) == 0 || playerLocations.at(id) != currentLocation) {
             playerLocations[id] = currentLocation;
             for (auto x = currentLocation.first-1; x <= currentLocation.first+1; x++) {
                 for (auto z = currentLocation.second-1; z <= currentLocation.second+1; z++) {
                     auto tilePos = std::pair<int,int>(x,z);
                     // create tile only when it is non existent
-                    if (globalTiles.count(tilePos) == 0) globalTiles[tilePos] = generateNewTile(x, z);
+                    if (globalTiles.count(tilePos) == 0) globalTiles[tilePos] = Tile::generateNewTile(tilePos);
                 }
             }
+            removeUnusedTiles(); // TODO: does not get called when player disconnects!
+            p.enteredNewLocation = true;
         }
 
         p.position = Vector3::from(moveAndSlide(Vector3::toGlm(p.position), direction));
     }
-    removeUnusedTiles();
 }
 
 glm::vec3 Server::moveAndSlide(const glm::vec3& position, const glm::vec3& direction) {
@@ -109,8 +106,8 @@ glm::vec3 Server::moveAndSlide(const glm::vec3& position, const glm::vec3& direc
 
 bool Server::checkForCollision(const glm::vec3& destination, float playerRadius) {
     // TODO could be improved just look at the current tile and the destination neighbour tile
-    auto location = positionToTileLocation(Vector3::from(destination));
-    for (auto const& tile : calculateTileArea(location)) {
+    auto location = Tile::positionToTileLocation(Vector3::from(destination));
+    for (auto const& tile : Tile::calculateTileArea(location, globalTiles)) {
         for (auto const& obstacle : tile.obstacles) {
             float testX = destination.x, testZ = destination.z;
             Vector3 globalPos = obstacle.position + tile.position;
@@ -129,55 +126,16 @@ bool Server::checkForCollision(const glm::vec3& destination, float playerRadius)
 }
 
 void Server::publishWorld() {
-    for(auto const& [id, p] : world.players) {
+    for(auto& [id, p] : world.players) {
         auto msg = std::make_shared<UpdateMessage>();
         msg->players = this->world.players;
-        msg->tiles = calculateTileArea(playerLocations[id]); // send players only necessary tiles
         msg->senderId = id;
+        if (p.enteredNewLocation) {
+            msg->tiles = Tile::calculateTileArea(playerLocations.at(id), globalTiles);
+            p.enteredNewLocation = false;
+        }
         netManager.queueOut.push(msg);
     }
-}
-
-Tile Server::generateNewTile(int x, int z) {
-    Tile tile;
-    tile.position = Vector3{ x * tile.scale.x, -0.1, z * tile.scale.z };
-    for (auto i = 0; i < 32; i++)
-        tile.obstacles.push_back(Obstacle{ Vector3{ rand() % 20 - 10.0f, 0.5f, rand() % 20 - 10.0f } }); // TODO remove magic number
-
-    return tile;
-}
-
-std::vector<Tile> Server::tilesFromLocations(const std::vector<std::pair<int, int>>& locations) {
-    std::vector<Tile> tiles;
-    for (auto const& location : locations) {
-        if (globalTiles.count(location) > 0) // if tile exists globally add it to the list
-            tiles.push_back(globalTiles[location]);
-    }
-
-    return tiles;
-}
-
-std::vector<std::pair<int, int>> Server::calculateLocationArea(const std::pair<int,int>& location) {
-    std::vector<std::pair<int, int>> locationArea;
-    for (auto x = location.first-1; x <= location.first+1; x++) {
-        for (auto z = location.second-1; z <= location.second+1; z++) {
-            locationArea.push_back(std::pair<int,int>(x,z));
-        }
-    }
-
-    return locationArea;
-}
-
-std::vector<Tile> Server::calculateTileArea(const std::pair<int,int>& location) {
-    auto locationArea = calculateLocationArea(location);
-    return tilesFromLocations(locationArea);
-}
-
-std::pair<int,int> Server::positionToTileLocation(const Vector3& position) {
-    float x = 0, z = 0;
-    x = position.x > 0 ? position.x + 5.0f : position.x - 5.0f;
-    z = position.z > 0 ? position.z + 5.0f : position.z - 5.0f;
-    return std::pair<int,int>((int)(x / 20), (int)(z / 20)); // TODO remove magic number!
 }
 
 void Server::removeUnusedTiles() {
@@ -185,7 +143,7 @@ void Server::removeUnusedTiles() {
 
     // get all currently used tile locations of the world
     for (auto const& [id, p] : world.players) {
-        auto locations = calculateLocationArea(positionToTileLocation(p.position));
+        auto locations = Tile::calculateLocationArea(Tile::positionToTileLocation(p.position));
         usedLocations.insert(locations.begin(), locations.end());
     }
 

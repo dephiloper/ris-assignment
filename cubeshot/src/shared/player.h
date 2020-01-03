@@ -7,7 +7,7 @@
 struct Player {
     Vector3 position;
     Vector3 front;
-
+    bool enteredNewLocation = false;
     NOP_STRUCTURE(Player, position, front);
 };
 

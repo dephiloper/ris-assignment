@@ -11,6 +11,7 @@
 
 #include "camera.h"
 #include "shader.h"
+#include "blueprint.h"
 #include "../../shared/world.h"
 #include "../../shared/utils/constants.h"
 
@@ -25,11 +26,12 @@ public:
     void render(const World &world, const std::string &localPlayerId);
     void render(const Camera &camera);
 private:
-    Shader shader{};
-    enum BlueprintType {TILE, OBSTACLE, CUBE_1};
-    std::map<BlueprintType, std::tuple<unsigned int, unsigned int>> blueprints;
+    Shader gameShader{};
+    Shader uiShader{};
+    enum BlueprintType {TILE, OBSTACLE, PLAYER, CROSS};
+    std::map<BlueprintType, Blueprint> blueprints;
     
-    unsigned int loadObject(std::vector<float> vertices, bool hasColor = false, bool hasTexture = false);
+    unsigned int loadObject(std::vector<float> vertices, unsigned short dimensions, bool hasColor = false, bool hasTexture = false);
     unsigned int loadTexture(unsigned int vao, const std::string& texturePath, bool alphaChannel);
 };
 

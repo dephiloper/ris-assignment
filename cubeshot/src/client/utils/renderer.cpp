@@ -5,10 +5,13 @@ void Renderer::init() {
     shaderDir = std::filesystem::current_path().string() + "/src/client/shaders/";
 
     // load shaders
-    if (shader.load(shaderDir + "vertex.glsl", shaderDir + "fragment.glsl") != 0)
+    if (gameShader.load(shaderDir + "game.vert", shaderDir + "game.frag") != 0)
         std::cout << "Error loading shaders" << std::endl;
 
-    std::vector<float> vertices = {
+    if (uiShader.load(shaderDir + "ui.vert", shaderDir + "ui.frag") != 0)
+        std::cout << "Error loading shaders" << std::endl;
+
+    std::vector<float> cubeVertices = {
         // front face
         -0.5f, -0.5f, -0.5f,  0.5f, 0.5f,
          0.5f, -0.5f, -0.5f,  1.0f, 0.5f,
@@ -108,60 +111,99 @@ void Renderer::init() {
         -0.5f,  0.5f, -0.5f,   0.0f, 20.0f
     };
 
-    unsigned int vao = loadObject(tileVertices, false, true);
-    unsigned int textureId = loadTexture(vao, assetsDir + "cube0_texture.png", false);
-    blueprints.insert(std::pair(TILE, std::pair(vao, textureId)));
+    std::vector<float> crossVertices =  {
+		-0.002f,  0.04f,
+		-0.002f, -0.04f,
+		 0.002f, -0.04f,
+		 0.002f, -0.04f,
+		-0.002f,  0.04f,
+		 0.002f,  0.04f,
 
-    vao = loadObject(vertices, false, true);
+		-0.03f,  0.002f,
+		-0.03f, -0.002f,
+		 0.03f, -0.002f,
+		 0.03f, -0.002f,
+		-0.03f,  0.002f,
+		 0.03f,  0.002f
+    };
+
+    unsigned int vao = loadObject(tileVertices, 3, false, true);
+    int textureId = loadTexture(vao, assetsDir + "cube0_texture.png", false);
+    blueprints.insert(std::pair(TILE, Blueprint {vao, textureId, (unsigned int)(tileVertices.size() / 3)}));
+
+    vao = loadObject(cubeVertices, 3, false, true);
     textureId = loadTexture(vao, assetsDir + "cube0_texture.png", false);
-    blueprints.insert(std::pair(OBSTACLE, std::pair(vao, textureId)));
+    blueprints.insert(std::pair(OBSTACLE, Blueprint {vao, textureId, (unsigned int)(cubeVertices.size() / 3)}));
 
     textureId = loadTexture(vao, assetsDir + "minion.jpg", false);
-    blueprints.insert(std::pair(CUBE_1, std::pair(vao, textureId)));
+    blueprints.insert(std::pair(PLAYER, Blueprint {vao, textureId, (unsigned int)(cubeVertices.size() / 3)}));
+
+    vao = loadObject(crossVertices, 2, false, false);
+    blueprints.insert(std::pair(CROSS, Blueprint {vao, -1, (unsigned int)(crossVertices.size() / 2)}));
 }
 
 void Renderer::render(const Camera &camera) {
-    shader.use();
+    // render crossair
+    auto blueprint = blueprints.at(CROSS);
+    uiShader.use();
+    glBindVertexArray(blueprint.vao);
+    uiShader.setVec3("color", glm::vec3(1.0f, 1.0f, 1.0f));
+    glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
+    glBindVertexArray(0);
+
+    gameShader.use();
 
     glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
-    shader.setMat4("projection", projection);
+    gameShader.setMat4("projection", projection);
     glm::mat4 view = camera.getViewMatrix();
-    shader.setMat4("view", view);
+    gameShader.setMat4("view", view);
 }
 
 void Renderer::render(const World &world, const std::string &localPlayerId) {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, std::get<1>(blueprints.at(TILE)));
+    // render tiles
+    auto blueprint = blueprints.at(TILE);
 
-    glBindVertexArray(std::get<0>(blueprints.at(TILE)));
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, blueprint.textureId);
+
+    glBindVertexArray(blueprint.vao);
     for (auto const& tile : world.tiles) {
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, Vector3::toGlm(tile.position));
         model = glm::scale(model, Vector3::toGlm(tile.scale));
-        unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
+        unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
     }
 
     glBindVertexArray(0);
-    glBindVertexArray(std::get<0>(blueprints.at(OBSTACLE)));
+
+    // render obstacles
+    blueprint = blueprints.at(OBSTACLE);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, blueprint.textureId);
+    
+    glBindVertexArray(blueprint.vao);
     for (auto const& tile : world.tiles) {
         for (auto const& obstacle : tile.obstacles) {
             glm::vec3 globalPos{ tile.position.x + obstacle.position.x, obstacle.position.y, tile.position.z + obstacle.position.z };
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, globalPos);
-            unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
+            unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
         }
     }
 
     glBindVertexArray(0);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, std::get<1>(blueprints.at(CUBE_1)));
+    // render player
+    blueprint = blueprints.at(PLAYER);
 
-    glBindVertexArray(std::get<0>(blueprints.at(CUBE_1)));
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, blueprint.textureId);
+    glBindVertexArray(blueprint.vao);
 
     for (auto const& [id, p] : world.players)
     {
@@ -175,17 +217,15 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
         model *= glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
         model = glm::scale(model, glm::vec3(PLAYER_SCALE));
 
-        unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
+        unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
     }
-    
-
 }
 
-unsigned int Renderer::loadObject(std::vector<float> vertices, bool hasColor, bool hasTexture) {
+unsigned int Renderer::loadObject(std::vector<float> vertices, unsigned short dimensions, bool hasColor, bool hasTexture) {
     unsigned int index = 0;
-    unsigned int stride = 3;
+    unsigned int stride = dimensions;
     unsigned int offset = 0;
 
     if (hasColor)
@@ -218,18 +258,18 @@ unsigned int Renderer::loadObject(std::vector<float> vertices, bool hasColor, bo
     //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // 3. set vertex attribute pointers (need explanation)
-    glVertexAttribPointer(index, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)nullptr);
+    glVertexAttribPointer(index, dimensions, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)nullptr);
     glEnableVertexAttribArray(0);
-    offset += 3;
+    offset += dimensions;
 
-    if (hasColor) {
+    if (hasColor) { // rgb = 3
         index++;
         glVertexAttribPointer(index, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(offset * sizeof(float)));
         glEnableVertexAttribArray(index);
         offset += 3;
     }
 
-    if (hasTexture) {
+    if (hasTexture) { // uv = 2
         index++;
         glVertexAttribPointer(index, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(offset * sizeof(float)));
         glEnableVertexAttribArray(index);

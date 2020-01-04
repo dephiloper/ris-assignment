@@ -15,7 +15,7 @@ struct Tile {
     static Tile generateNewTile(std::pair<int, int> location) {
         Tile tile;
         tile.position = Vector3{ location.first * tile.scale.x, -0.1, location.second * tile.scale.z };
-        for (auto i = 0; i < 32; i++)
+        for (auto i = 0; i < 16; i++)
             tile.obstacles.push_back(Obstacle{ Vector3{ rand() % (int)TILE_SIZE - TILE_SIZE/2, 0.5f, rand() % (int)TILE_SIZE - TILE_SIZE/2 } });
 
         return tile;

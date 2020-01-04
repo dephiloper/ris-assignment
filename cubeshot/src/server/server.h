@@ -45,12 +45,13 @@ private:
 
     void processMessages();
     void updatePlayers(float deltaTime);
-    void shootAndCollide(const glm::vec3& position, const glm::vec3& direction);
+    void shootAndCollide(const glm::vec3& position, const glm::vec3& direction, const std::string& playerId);
     bool intersectPlane(const glm::vec3 &n, const glm::vec3 &p0, const glm::vec3 &l0, const glm::vec3 &l, float &t); 
     glm::vec3 moveAndSlide(const glm::vec3& position, const glm::vec3& direction);
     bool checkForCollision(const glm::vec3& destination, float playerRadius);
     void publishWorld();
     void removeUnusedTiles();
+    float cube(const glm::vec3& p, float r);
 public:
     Server();
     void mainLoop();

@@ -64,7 +64,7 @@ void Server::updatePlayers(float deltaTime) {
         if ((input.direction & LEFT) == LEFT)
             direction -= right;
         if (input.shoot)
-            shootAndCollide(Vector3::toGlm(p.position), Vector3::toGlm(p.front));
+            shootAndCollide(Vector3::toGlm(p.position), Vector3::toGlm(p.front), id);
 
         if (direction != glm::vec3(0))
             direction = glm::normalize(direction) * velocity;
@@ -91,8 +91,10 @@ void Server::updatePlayers(float deltaTime) {
     }
 }
 
-void Server::shootAndCollide(const glm::vec3& position, const glm::vec3& direction) {
+void Server::shootAndCollide(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const std::string& playerId) {
     for (auto const& [id, p] : world.players) {
+        if (id == playerId) continue; // ignore own faces
+
         std::vector<glm::vec3> faces;
         auto front = glm::normalize(Vector3::toGlm(p.front));
         auto right = glm::normalize(glm::cross(front, WORLD_UP));
@@ -105,29 +107,24 @@ void Server::shootAndCollide(const glm::vec3& position, const glm::vec3& directi
         faces.push_back(up); // top face
         faces.push_back(-up); // bottom face
 
-        for (auto const& face : faces) {
+        int i = 0;
+        for (auto const& faceNormal : faces) {
             float t;
-            if (intersectPlane(face, position + face * PLAYER_SCALE, position, direction, t)) {
-                auto s = (position + t * direction);
-                
-                bool isOnPlane = true;
-                auto right = glm::normalize(glm::cross(face, WORLD_UP));
-                auto up = glm::normalize(glm::cross(right, face));
-
-                if (glm::dot(right, s - (face + right) * (PLAYER_SCALE/2)) / glm::dot(right, right) > 0)
-                    isOnPlane = false;
-                else if (glm::dot(-right, s - (face - right) * (PLAYER_SCALE/2)) / glm::dot(-right, -right) > 0)
-                    isOnPlane = false;
-                else if (glm::dot(up,  s - (face + up) * (PLAYER_SCALE/2)) / glm::dot(up, up) > 0)
-                    isOnPlane = false;
-                else if (glm::dot(-up, s - (face - up) * (PLAYER_SCALE/2)) / glm::dot(-up, -up) > 0)
-                    isOnPlane = false;
-
-                std::cout << s.x << ", " << s.y << ", " << s.z << std::endl;
-                std::cout << (isOnPlane ? "true" : "false") << std::endl;
+            glm::vec3 facePosition = Vector3::toGlm(p.position) + faceNormal * (PLAYER_SCALE / 2.0f);
+            if (intersectPlane(faceNormal, facePosition, rayOrigin, glm::normalize(rayDirection), t)) {
+                auto s = (rayOrigin + t * rayDirection);
+                std::cout << "intersection point: " << s.x << ", " << s.y << ", " << s.z << std::endl;
+                std::cout << "cube: " << cube(s, (PLAYER_SCALE / 2.0f)) << std::endl;
+                i++;
             }
         }
+        std::cout << "intersection count = " << i << std::endl;
     }
+}
+
+float Server::cube(const glm::vec3& p, float r) {
+    glm::vec3 p2 = glm::abs(p) - r;
+    return glm::length(glm::max(p2, glm::vec3(0)));
 }
 
 bool Server::intersectPlane(const glm::vec3 &n, const glm::vec3 &p0, const glm::vec3 &l0, const glm::vec3 &l, float &t) 

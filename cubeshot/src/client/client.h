@@ -30,20 +30,22 @@ private:
     std::string playerId;
     InputMessage input;
 
+    float mouseX{};
+    float mouseY{};
+    bool shoot;
+
     void processInput(float deltaTime);
     void processMessages();
 
 public:
-    float mouseX{};
-    float mouseY{};
-
     Client();
     void mainLoop();
     void handleMouseInput(double xPos, double yPos);
-
+    void handleMouseButtonInput(int button, int action, int mods);
 };
 
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
 #endif //CLIENT_H

@@ -15,6 +15,10 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
     client.handleMouseInput(xPos, yPos);
 }
 
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+   client.handleMouseButtonInput(button, action, mods);
+}
+
 Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 5555) {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -31,6 +35,7 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     glfwSetCursorPosCallback(window, mouseCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
     //glfwSetScrollCallback(window, scroll_callback);
 
     // glad: load all OpenGL function pointers, check if glad is successfully included
@@ -97,10 +102,9 @@ void Client::processInput(float deltaTime) {
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         direction |= RIGHT;
 
-    //if (input.direction != direction || camera.pitch) {
-    netManager.queueOut.push(std::make_shared<InputMessage>(direction, camera.front));
-    //}
-
+    netManager.queueOut.push(std::make_shared<InputMessage>(direction, camera.front, shoot));
+    shoot = false;
+    
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     else if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED)
@@ -115,6 +119,11 @@ void Client::handleMouseInput(double xPos, double yPos) {
     mouseY = (float)yPos;
 
     camera.processMouseMovement(xOffset, yOffset);
+}
+
+void Client::handleMouseButtonInput(int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        shoot = true;
 }
 
 void Client::processMessages() {

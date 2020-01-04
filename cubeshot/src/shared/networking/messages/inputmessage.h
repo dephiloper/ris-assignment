@@ -10,10 +10,10 @@
 
 struct InputMessage : NetMessage {
     InputMessage() = default;
-    InputMessage(char direction, glm::vec3 front) : direction(direction), front{front.x, front.y, front.z} { }
+    InputMessage(char direction, glm::vec3 front, bool shoot) : direction(direction), front{front.x, front.y, front.z}, shoot(shoot) { }
     char direction;
     Vector3 front;
-
+    bool shoot;
 
     std::string serialize() {
         nop::Serializer<nop::StreamWriter<std::stringstream>> serializer;
@@ -30,7 +30,7 @@ struct InputMessage : NetMessage {
         return msg;
     }
     
-    NOP_STRUCTURE(InputMessage, direction, front);
+    NOP_STRUCTURE(InputMessage, direction, front, shoot);
 };
 
 #endif // MOVEMESSAGE_H

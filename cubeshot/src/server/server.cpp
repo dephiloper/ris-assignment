@@ -63,6 +63,8 @@ void Server::updatePlayers(float deltaTime) {
             direction += right;
         if ((input.direction & LEFT) == LEFT)
             direction -= right;
+        if (input.shoot)
+            shootAndCollide(Vector3::toGlm(p.position), Vector3::toGlm(p.front));
 
         if (direction != glm::vec3(0))
             direction = glm::normalize(direction) * velocity;
@@ -76,7 +78,7 @@ void Server::updatePlayers(float deltaTime) {
             playerLocations[id] = currentLocation;
             for (auto x = currentLocation.first-1; x <= currentLocation.first+1; x++) {
                 for (auto z = currentLocation.second-1; z <= currentLocation.second+1; z++) {
-                    auto tilePos = std::pair<int,int>(x,z);
+                    auto tilePos = std::pair(x,z);
                     // create tile only when it is non existent
                     if (globalTiles.count(tilePos) == 0) globalTiles[tilePos] = Tile::generateNewTile(tilePos);
                 }
@@ -88,6 +90,58 @@ void Server::updatePlayers(float deltaTime) {
         p.position = Vector3::from(moveAndSlide(Vector3::toGlm(p.position), direction));
     }
 }
+
+void Server::shootAndCollide(const glm::vec3& position, const glm::vec3& direction) {
+    for (auto const& [id, p] : world.players) {
+        std::vector<glm::vec3> faces;
+        auto front = glm::normalize(Vector3::toGlm(p.front));
+        auto right = glm::normalize(glm::cross(front, WORLD_UP));
+        auto up = glm::normalize(glm::cross(right, front));
+        
+        faces.push_back(front); // front face
+        faces.push_back(-front); // back face
+        faces.push_back(right); // right face
+        faces.push_back(-right); // left face
+        faces.push_back(up); // top face
+        faces.push_back(-up); // bottom face
+
+        for (auto const& face : faces) {
+            float t;
+            if (intersectPlane(face, position + face * PLAYER_SCALE, position, direction, t)) {
+                auto s = (position + t * direction);
+                
+                bool isOnPlane = true;
+                auto right = glm::normalize(glm::cross(face, WORLD_UP));
+                auto up = glm::normalize(glm::cross(right, face));
+
+                if (glm::dot(right, s - (face + right) * (PLAYER_SCALE/2)) / glm::dot(right, right) > 0)
+                    isOnPlane = false;
+                else if (glm::dot(-right, s - (face - right) * (PLAYER_SCALE/2)) / glm::dot(-right, -right) > 0)
+                    isOnPlane = false;
+                else if (glm::dot(up,  s - (face + up) * (PLAYER_SCALE/2)) / glm::dot(up, up) > 0)
+                    isOnPlane = false;
+                else if (glm::dot(-up, s - (face - up) * (PLAYER_SCALE/2)) / glm::dot(-up, -up) > 0)
+                    isOnPlane = false;
+
+                std::cout << s.x << ", " << s.y << ", " << s.z << std::endl;
+                std::cout << (isOnPlane ? "true" : "false") << std::endl;
+            }
+        }
+    }
+}
+
+bool Server::intersectPlane(const glm::vec3 &n, const glm::vec3 &p0, const glm::vec3 &l0, const glm::vec3 &l, float &t) 
+{ 
+    // assuming vectors are all normalized
+    float denom = glm::dot(n, l); 
+    if (denom > 1e-6) { 
+        auto p0l0 = p0 - l0; 
+        t = glm::dot(p0l0, n) / denom; 
+        return (t >= 0); 
+    } 
+ 
+    return false; 
+} 
 
 glm::vec3 Server::moveAndSlide(const glm::vec3& position, const glm::vec3& direction) {
     glm::vec3 destination = position;

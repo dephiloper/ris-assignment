@@ -63,9 +63,13 @@ void Server::updatePlayers(float deltaTime) {
             direction += right;
         if ((input.direction & LEFT) == LEFT)
             direction -= right;
-        if (input.shoot)
-            shootAndCollide(Vector3::toGlm(p.position), Vector3::toGlm(p.front), id);
-
+        
+        if (input.shoot) {
+            auto [playerId, hitPoint] = shootAndCollide(Vector3::toGlm(p.position), Vector3::toGlm(p.front), id);
+            if (!playerId.empty())
+                world.players[playerId].hitPoints.push_back(Vector3::from(hitPoint));
+        }
+        
         if (direction != glm::vec3(0))
             direction = glm::normalize(direction) * velocity;
         
@@ -91,40 +95,38 @@ void Server::updatePlayers(float deltaTime) {
     }
 }
 
-void Server::shootAndCollide(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const std::string& playerId) {
+std::pair<std::string, glm::vec3> Server::shootAndCollide(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const std::string& playerId) {
     for (auto const& [id, p] : world.players) {
         if (id == playerId) continue; // ignore own faces
 
-        std::vector<glm::vec3> faces;
-        auto front = glm::normalize(Vector3::toGlm(p.front));
-        auto right = glm::normalize(glm::cross(front, WORLD_UP));
-        auto up = glm::normalize(glm::cross(right, front));
-        
-        faces.push_back(front); // front face
-        faces.push_back(-front); // back face
-        faces.push_back(right); // right face
-        faces.push_back(-right); // left face
-        faces.push_back(up); // top face
-        faces.push_back(-up); // bottom face
+        // calculate translation and rotation matrix of the player
+        glm::mat4 translation = glm::mat4(1.0f);
+        translation = glm::translate(translation, Vector3::toGlm(p.position));
+        glm::vec3 target = Vector3::toGlm(p.front);
+        glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
+        glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
 
-        int i = 0;
-        for (auto const& faceNormal : faces) {
+        // translate and rotate the rayorigin/raydirection acording to the possible player to hit (player to hit at the origin of the coordinate system)
+        glm::vec4 translatedOrigin = glm::inverse(translation * rotation) * glm::vec4(rayOrigin, 1.0f); // translate and rotate ray origin
+        glm::vec4 rotatedDirection = glm::normalize(glm::inverse(rotation) * glm::vec4(rayDirection, 1.0f)); // just rotate the ray direction
+
+        // check all possible face normals if an intersection is possible
+        for (auto const& face : faceNormals) {
             float t;
-            glm::vec3 facePosition = Vector3::toGlm(p.position) + faceNormal * (PLAYER_SCALE / 2.0f);
-            if (intersectPlane(faceNormal, facePosition, rayOrigin, glm::normalize(rayDirection), t)) {
-                auto s = (rayOrigin + t * rayDirection);
-                std::cout << "intersection point: " << s.x << ", " << s.y << ", " << s.z << std::endl;
-                std::cout << "cube: " << cube(s, (PLAYER_SCALE / 2.0f)) << std::endl;
-                i++;
+            if (intersectPlane(-face, face * (PLAYER_SCALE / 2.0f), translatedOrigin, rotatedDirection, t)) {
+                glm::vec3 s = (translatedOrigin + t * rotatedDirection);
+                if (cube(s, (PLAYER_SCALE / 2.0f)) < 0.001) // apply distance function between intersection point an face plane
+                    return std::pair(id, s); //(rayOrigin + t * rayDirection); // untransformed intersection point
             }
         }
-        std::cout << "intersection count = " << i << std::endl;
     }
+    return std::pair("", glm::vec3(0));
 }
 
 float Server::cube(const glm::vec3& p, float r) {
     glm::vec3 p2 = glm::abs(p) - r;
-    return glm::length(glm::max(p2, glm::vec3(0)));
+    //return glm::length(glm::max(p2, glm::vec3(0)));
+    return glm::max(p2.x, glm::max(p2.y, p2.z));
 }
 
 bool Server::intersectPlane(const glm::vec3 &n, const glm::vec3 &p0, const glm::vec3 &l0, const glm::vec3 &l, float &t) 

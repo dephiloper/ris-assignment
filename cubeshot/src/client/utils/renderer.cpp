@@ -220,6 +220,15 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
         unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
+
+        for (auto const& hitPoint : p.hitPoints) {
+            auto hitDirection = glm::normalize(Vector3::toGlm(hitPoint)) * (PLAYER_SCALE / 2.0f);
+            auto hitModel = glm::translate(model, hitDirection);
+            //hitModel = glm::scale(hitModel, glm::vec3(0.1));
+            unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(hitModel));
+            glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
+        }
     }
 }
 

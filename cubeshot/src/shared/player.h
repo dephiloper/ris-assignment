@@ -7,8 +7,10 @@
 struct Player {
     Vector3 position;
     Vector3 front;
+    std::vector<Vector3> hitPoints;
+
     bool enteredNewLocation = false;
-    NOP_STRUCTURE(Player, position, front);
+    NOP_STRUCTURE(Player, position, front, hitPoints);
 };
 
 #endif //PLAYER_H

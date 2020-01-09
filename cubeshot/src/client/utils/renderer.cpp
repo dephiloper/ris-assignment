@@ -61,55 +61,10 @@ void Renderer::init() {
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    std::vector<float> tileVertices = {
-        // front face
-        -0.5f, -0.5f, -0.5f,   10.0f,  10.0f,
-         0.5f, -0.5f, -0.5f,  20.0f,  10.0f,
-         0.5f,  0.5f, -0.5f,  20.0f, 20.0f,
-         0.5f,  0.5f, -0.5f,  20.0f, 20.0f,
-        -0.5f,  0.5f, -0.5f,   10.0f, 20.0f,
-        -0.5f, -0.5f, -0.5f,   10.0f,  10.0f,
-
-        // back
-        -0.5f, -0.5f,  0.5f,   0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,   10.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,   10.0f,  10.0f,
-         0.5f,  0.5f,  0.5f,   10.0f,  10.0f,
-        -0.5f,  0.5f,  0.5f,   0.0f,  10.0f,
-        -0.5f, -0.5f,  0.5f,   0.0f,  0.0f,
-
-        // right
-        -0.5f,  0.5f,  0.5f,   10.0f,  10.0f,
-        -0.5f,  0.5f, -0.5f,   0.0f,  10.0f,
-        -0.5f, -0.5f, -0.5f,   0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,   0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,   10.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,   10.0f,  10.0f,
-
-        // left    
-         0.5f,  0.5f,  0.5f,   10.0f,  10.0f,
-         0.5f,  0.5f, -0.5f,   0.0f,  10.0f,
-         0.5f, -0.5f, -0.5f,   0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,   0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,   10.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,   10.0f,  10.0f,
-
-        // bottom
-        -0.5f, -0.5f, -0.5f,   10.0f,  10.0f,
-         0.5f, -0.5f, -0.5f,  20.0f,  10.0f,
-         0.5f, -0.5f,  0.5f,  20.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  20.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,   10.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,   10.0f,  10.0f,
-
-        // top
-        -0.5f,  0.5f, -0.5f,   0.0f, 20.0f,
-         0.5f,  0.5f, -0.5f,   10.0f, 20.0f,
-         0.5f,  0.5f,  0.5f,   10.0f,  10.0f,
-         0.5f,  0.5f,  0.5f,   10.0f,  10.0f,
-        -0.5f,  0.5f,  0.5f,   0.0f,  10.0f,
-        -0.5f,  0.5f, -0.5f,   0.0f, 20.0f
-    };
+    auto tileVertices = cubeVertices;
+    for (int i = 0; i < tileVertices.size(); i++)
+        if (i % 5 == 3 || i % 5 == 4)
+            tileVertices[i] *= TILE_SIZE;
 
     std::vector<float> crossVertices =  {
 		-0.002f,  0.04f,
@@ -152,7 +107,7 @@ void Renderer::render(const Camera &camera) {
     glBindVertexArray(0);
 
     gameShader.use();
-
+    gameShader.setFloat("tileSize", TILE_SIZE);
     glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
     gameShader.setMat4("projection", projection);
     glm::mat4 view = camera.getViewMatrix();
@@ -215,6 +170,7 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
         glm::vec3 target = Vector3::toGlm(p.front);
         glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
         model *= glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
+        auto hitPointMatrix = model;
         model = glm::scale(model, glm::vec3(PLAYER_SCALE));
 
         unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
@@ -222,9 +178,9 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
         glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
 
         for (auto const& hitPoint : p.hitPoints) {
-            auto hitDirection = glm::normalize(Vector3::toGlm(hitPoint)) * (PLAYER_SCALE / 2.0f);
-            auto hitModel = glm::translate(model, hitDirection);
-            //hitModel = glm::scale(hitModel, glm::vec3(0.1));
+            auto hitDirection = Vector3::toGlm(hitPoint);
+            auto hitModel = glm::translate(hitPointMatrix, hitDirection);
+            hitModel = glm::scale(hitModel, glm::vec3(0.1));
             unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(hitModel));
             glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);

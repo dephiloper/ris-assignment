@@ -9,7 +9,7 @@ struct Vector3 {
     float y = 0.0f;
     float z = 0.0f;
     
-    friend std::ostream& operator <<(std::ostream& os, const Vector3& vec)
+    friend std::ostream& operator<< (std::ostream& os, const Vector3& vec)
     {
         os << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
         return os;

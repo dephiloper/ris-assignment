@@ -95,6 +95,16 @@ void Server::updatePlayers(float deltaTime) {
     }
 }
 
+template <typename CharT, typename TraitsT, glm::length_t L, typename T, glm::qualifier Q>
+auto& operator<< (std::basic_ostream<CharT, TraitsT>& os, const glm::vec<L, T, Q>& v)
+{
+    os << '(' << v.x;
+    for (auto i = 1ul; i < L; ++i)
+        os << ", " << *(&v.x + i);
+    os << ')';
+    return os;
+}
+
 std::pair<std::string, glm::vec3> Server::shootAndCollide(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const std::string& playerId) {
     for (auto const& [id, p] : world.players) {
         if (id == playerId) continue; // ignore own faces
@@ -115,6 +125,7 @@ std::pair<std::string, glm::vec3> Server::shootAndCollide(const glm::vec3& rayOr
             float t;
             if (intersectPlane(-face, face * (PLAYER_SCALE / 2.0f), translatedOrigin, rotatedDirection, t)) {
                 glm::vec3 s = (translatedOrigin + t * rotatedDirection);
+                std::cout << s << std::endl;
                 if (cube(s, (PLAYER_SCALE / 2.0f)) < 0.001) // apply distance function between intersection point an face plane
                     return std::pair(id, s); //(rayOrigin + t * rayDirection); // untransformed intersection point
             }

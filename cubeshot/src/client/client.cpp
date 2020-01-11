@@ -43,6 +43,8 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 
         std::cout << "Failed to initialize GLAD" << std::endl;
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -71,6 +73,15 @@ void Client::mainLoop() {
         
         renderer.render(camera);
         renderer.render(world, playerId);
+
+        int i = 0;
+        for (auto const& laser : world.lasers) {
+            auto timeLeft = laser.spawnTime + (1e6/2) - Constants::currentMillis();
+            float visibility = glm::max(timeLeft / (1e6/2), 0.0);
+            renderer.render(laser, visibility);
+            if (visibility <= 0.01) world.lasers.erase(world.lasers.begin() + i);
+            i++;
+        }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
@@ -124,6 +135,10 @@ void Client::handleMouseInput(double xPos, double yPos) {
 void Client::handleMouseButtonInput(int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
         shoot = true;
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+        camera.zoom /= 1.5f;
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+        camera.zoom = ZOOM;
 }
 
 void Client::processMessages() {

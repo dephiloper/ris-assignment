@@ -11,6 +11,7 @@ struct UpdateMessage : NetMessage {
     
     std::map<std::string, Player> players;
     std::vector<Tile> tiles;
+    std::vector<Laser> lasers;
 
     std::string serialize() {
         nop::Serializer<nop::StreamWriter<std::stringstream>> serializer;
@@ -27,7 +28,7 @@ struct UpdateMessage : NetMessage {
         return msg;
     }
     
-    NOP_STRUCTURE(UpdateMessage, players, tiles);
+    NOP_STRUCTURE(UpdateMessage, players, tiles, lasers);
 };
 
 #endif // UPDATEMESSAGE_H

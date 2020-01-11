@@ -3,10 +3,12 @@
 
 #include <nop/structure.h>
 #include "vector3.h"
+#include "intersectable.h"
 
-struct Obstacle {
-    Vector3 position;
+struct Obstacle : Intersectable {
+    Obstacle() : Intersectable(OBSTACLE) {}
     float radius = 0.5f;
+    
     NOP_STRUCTURE(Obstacle, position);
 };
 

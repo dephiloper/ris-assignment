@@ -65,9 +65,12 @@ void Server::updatePlayers(float deltaTime) {
             direction -= right;
         
         if (input.shoot) {
-            auto [playerId, hitPoint] = shootAndCollide(Vector3::toGlm(p.position), Vector3::toGlm(p.front), id);
-            if (!playerId.empty())
-                world.players[playerId].hitPoints.push_back(Vector3::from(hitPoint));
+            RayCast ray = shootAndCollide(Vector3::toGlm(p.position), Vector3::toGlm(p.front), id);
+            Vector3 target = ray.hit ? Vector3::from(ray.worldIntersection) : Vector3::from(ray.origin + ray.direction * TILE_SIZE);
+            Laser laser { Vector3::from(ray.origin - glm::normalize(glm::cross(right, front)) * (PLAYER_SCALE / 3.0f)), target, Constants::currentMillis() };
+            world.lasers.push_back(laser);
+            if (!ray.intersectableId.empty())
+                world.players[ray.intersectableId].hitPoints.push_back(Vector3::from(ray.modelIntersection));
         }
         
         if (direction != glm::vec3(0))
@@ -105,33 +108,86 @@ auto& operator<< (std::basic_ostream<CharT, TraitsT>& os, const glm::vec<L, T, Q
     return os;
 }
 
-std::pair<std::string, glm::vec3> Server::shootAndCollide(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const std::string& playerId) {
-    for (auto const& [id, p] : world.players) {
-        if (id == playerId) continue; // ignore own faces
+RayCast Server::shootAndCollide(const glm::vec3& origin, const glm::vec3& direction, const std::string& playerId) {
+    RayCast ray(origin, direction);
+    RayCast closestRay = ray;
+    float closestDistance = std::numeric_limits<float>::max();
 
-        // calculate translation and rotation matrix of the player
-        glm::mat4 translation = glm::mat4(1.0f);
-        translation = glm::translate(translation, Vector3::toGlm(p.position));
-        glm::vec3 target = Vector3::toGlm(p.front);
-        glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
-        glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
-
-        // translate and rotate the rayorigin/raydirection acording to the possible player to hit (player to hit at the origin of the coordinate system)
-        glm::vec4 translatedOrigin = glm::inverse(translation * rotation) * glm::vec4(rayOrigin, 1.0f); // translate and rotate ray origin
-        glm::vec4 rotatedDirection = glm::normalize(glm::inverse(rotation) * glm::vec4(rayDirection, 1.0f)); // just rotate the ray direction
-
-        // check all possible face normals if an intersection is possible
-        for (auto const& face : faceNormals) {
-            float t;
-            if (intersectPlane(-face, face * (PLAYER_SCALE / 2.0f), translatedOrigin, rotatedDirection, t)) {
-                glm::vec3 s = (translatedOrigin + t * rotatedDirection);
-                std::cout << s << std::endl;
-                if (cube(s, (PLAYER_SCALE / 2.0f)) < 0.001) // apply distance function between intersection point an face plane
-                    return std::pair(id, s); //(rayOrigin + t * rayDirection); // untransformed intersection point
+    // loop over all visible tiles to get the containing obstacles
+    // check all obstacles for intersections
+    for (auto const& t : Tile::calculateTileArea(playerLocations[playerId], globalTiles)) {
+        for (auto const& obstacle : t.obstacles) {
+            Obstacle o = obstacle;
+            o.position = Vector3{o.position.x + t.position.x, o.position.y + t.position.y, o.position.z + t.position.z};
+            float distance = calculateParametricDistance(o, ray); // returns -1 when no intersection between ray and intersectable occures
+            // when there is an intersection and the intersection point is closer to the ray origin
+            if (distance != -1 && distance < closestDistance) {
+                closestRay = ray;
+                closestRay.hit = true;
+                closestDistance = distance;
             }
         }
     }
-    return std::pair("", glm::vec3(0));
+
+    // check all players for intersections
+    for (auto& [id, p] : world.players) {
+        if (id == playerId) continue; // ignore own faces
+        float distance = calculateParametricDistance(p, ray); // returns -1 when no intersection between ray and intersectable occures
+        
+        // when there is an intersection and the intersection point is closer to the ray origin
+        if (distance != -1 && distance < closestDistance) {
+            closestRay = ray;
+            closestRay.hit = true;
+            closestRay.intersectableId = id;
+            closestDistance = distance;
+        }
+    }
+    return closestRay;
+}
+
+float Server::calculateParametricDistance(const Intersectable& intersectable, RayCast& ray) {
+    float halfWidth = (intersectable.type == PLAYER ? PLAYER_SCALE : OBSTACLE_SCALE) / 2.0f; 
+
+    // calculate translation and rotation matrix of the player
+    glm::mat4 translation = glm::mat4(1.0f);
+    translation = glm::translate(translation, Vector3::toGlm(intersectable.position));
+    glm::vec3 target = Vector3::toGlm(intersectable.front);
+    glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
+    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
+
+    // translate and rotate the rayorigin/raydirection acording to the possible player to hit (player to hit at the origin of the coordinate system)
+    glm::vec4 translatedOrigin = glm::inverse(translation * rotation) * glm::vec4(ray.origin, 1.0f); // translate and rotate ray origin
+    glm::vec4 rotatedDirection = glm::normalize(glm::inverse(rotation) * glm::vec4(ray.direction, 1.0f)); // just rotate the ray direction
+
+    // check all possible face normals if an intersection is possible
+    std::vector<float> distances;
+    std::vector<glm::vec3> modelIntersections;
+    std::vector<glm::vec3> worldIntersections;
+
+    for (auto const& face : faceNormals) {
+        float parametricDistance;
+        if (intersectPlane(-face, face * halfWidth, translatedOrigin, rotatedDirection, parametricDistance)) {
+            glm::vec3 modelIntersection = (translatedOrigin + parametricDistance * rotatedDirection);
+
+            if (cube(modelIntersection, halfWidth) < 0.001) { // apply distance function between intersection point an face plane
+                modelIntersections.push_back(modelIntersection);
+                worldIntersections.push_back(ray.origin + parametricDistance * ray.direction);
+            
+                //std::cout << "intersection point " << s << std::endl;
+                distances.push_back(parametricDistance);
+            }
+        }
+    }
+
+    if (distances.size() > 0) {
+        int minIndex = std::min_element(distances.begin(),distances.end()) - distances.begin();
+        ray.modelIntersection = modelIntersections[minIndex];
+        ray.worldIntersection = worldIntersections[minIndex];
+        ray.length = distances[minIndex];
+        return ray.length;
+    }
+    
+    return -1;
 }
 
 float Server::cube(const glm::vec3& p, float r) {
@@ -192,14 +248,18 @@ bool Server::checkForCollision(const glm::vec3& destination, float playerRadius)
 void Server::publishWorld() {
     for(auto& [id, p] : world.players) {
         auto msg = std::make_shared<UpdateMessage>();
-        msg->players = this->world.players;
         msg->senderId = id;
+        msg->players = this->world.players;
+        if (this->world.lasers.size() > 0)
+            msg->lasers = this->world.lasers;
+
         if (p.enteredNewLocation) {
             msg->tiles = Tile::calculateTileArea(playerLocations.at(id), globalTiles);
             p.enteredNewLocation = false;
         }
         netManager.queueOut.push(msg);
     }
+    this->world.lasers.clear();
 }
 
 void Server::removeUnusedTiles() {

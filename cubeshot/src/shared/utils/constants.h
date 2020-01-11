@@ -2,6 +2,7 @@
 #define CONSTANTS_H
 
 const float PLAYER_SCALE = 0.8f;
+const float OBSTACLE_SCALE = 1.0f;
 
 struct Constants {
     static int64_t currentMillis() {

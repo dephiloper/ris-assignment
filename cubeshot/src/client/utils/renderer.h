@@ -8,6 +8,7 @@
 #include "map"
 #include "vector"
 #include "filesystem"
+#include "algorithm"
 
 #include "camera.h"
 #include "shader.h"
@@ -25,6 +26,7 @@ public:
     void init();
     void render(const World &world, const std::string &localPlayerId);
     void render(const Camera &camera);
+    void render(const Laser &laser, float visibility);
 private:
     Shader gameShader{};
     Shader uiShader{};

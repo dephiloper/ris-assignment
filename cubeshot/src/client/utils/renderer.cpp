@@ -114,6 +114,36 @@ void Renderer::render(const Camera &camera) {
     gameShader.setMat4("view", view);
 }
 
+void Renderer::render(const Laser &laser, float visibility) {
+    gameShader.setInt("isLaser", 1);
+
+    // render laser
+    auto blueprint = blueprints.at(OBSTACLE);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, blueprint.textureId);
+
+    glBindVertexArray(blueprint.vao);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::vec3 origin = Vector3::toGlm(laser.origin);
+    glm::vec3 direction = glm::normalize(Vector3::toGlm(laser.target) - origin);
+    float laserLength = glm::distance(Vector3::toGlm(laser.target), origin);
+    origin += direction * (laserLength / 2.0f + PLAYER_SCALE / 2.0f);
+    
+    model = glm::translate(model, origin);
+    glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), direction);
+    model *= glm::inverse(glm::lookAt(glm::vec3(0), direction, glm::vec3(0, 1, 0)));
+    float scale = visibility * 0.1;
+    model = glm::scale(model, glm::vec3(scale, scale, laserLength));
+
+    gameShader.setVec4("laserColor", glm::vec4(1.0f, 1.0f, 0.0f, visibility));
+    unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
+
+    gameShader.setInt("isLaser", 0);
+}
+
 void Renderer::render(const World &world, const std::string &localPlayerId) {
     // render tiles
     auto blueprint = blueprints.at(TILE);

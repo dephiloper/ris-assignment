@@ -3,13 +3,14 @@
 
 #include <nop/structure.h>
 #include "vector3.h"
+#include "intersectable.h"
 
-struct Player {
-    Vector3 position;
-    Vector3 front;
+struct Player : Intersectable {
+    Player() : Intersectable(PLAYER) {};
+
     std::vector<Vector3> hitPoints;
-
     bool enteredNewLocation = false;
+
     NOP_STRUCTURE(Player, position, front, hitPoints);
 };
 

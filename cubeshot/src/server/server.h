@@ -14,6 +14,7 @@
 #include <typeinfo>
 #include <set>
 
+#include "physics/collision.h"
 #include "physics/raycast.h"
 #include "networking/servernetmanager.h"
 #include "networking/handlers/loginmessagehandler.h"
@@ -34,7 +35,6 @@ private:
     const glm::vec3 WORLD_UP = glm::vec3(0.0f, 1.0f, 0.0f);
     const float MOVEMENT_SPEED = 4.0f;
     const float COLLISION_RADIUS = PLAYER_SCALE / 2.0f;//std::sqrt(std::pow(PLAYER_SCALE, 2.0f) * 2.0f) / 2.0f;
-    const std::vector<glm::vec3> faceNormals = { glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, -1.0f) };
 
     ServerNetManager netManager;
     int64_t lastFrame{};
@@ -47,14 +47,13 @@ private:
 
     void processMessages();
     void updatePlayers(float deltaTime);
+    void updatePotions(float deltaTime);
     RayCast shootAndCollide(const glm::vec3& origin, const glm::vec3& direction, const std::string& playerId);
-    float calculateParametricDistance(const Intersectable& intersectable, RayCast& ray);
-    bool intersectPlane(const glm::vec3 &n, const glm::vec3 &p0, const glm::vec3 &l0, const glm::vec3 &l, float &t); 
     glm::vec3 moveAndSlide(const glm::vec3& position, const glm::vec3& direction);
-    bool checkForCollision(const glm::vec3& destination, float playerRadius);
+    bool circleSquareCollision(const glm::vec3& destination, float playerRadius);
     void publishWorld();
-    void removeUnusedTiles();
-    float cube(const glm::vec3& p, float r);
+    void removeObsoleteTiles();
+    void removeObsoletePotions(const std::set<std::pair<int, int>>& unusedLocations);
 public:
     Server();
     void mainLoop();

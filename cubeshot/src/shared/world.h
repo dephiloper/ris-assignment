@@ -14,6 +14,7 @@ struct World {
     std::map<std::string, Player> players;
     std::vector<Tile> tiles;
     std::vector<Laser> lasers;
+    std::vector<Potion> potions;
 
     NOP_STRUCTURE(World, tiles);
 };

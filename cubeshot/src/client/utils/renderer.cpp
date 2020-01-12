@@ -61,10 +61,39 @@ void Renderer::init() {
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
+    std::vector<float> apexVertices = {
+        // front face
+        -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+         0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,
+
+        // back
+        -0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
+         0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,
+
+        // right
+         0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
+         0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,
+
+        // left    
+        -0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+         0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,
+
+        // bottom
+        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+    };
+
     auto tileVertices = cubeVertices;
     for (int i = 0; i < tileVertices.size(); i++)
-        if (i % 5 == 3 || i % 5 == 4)
-            tileVertices[i] *= TILE_SIZE;
+        if (i % 5 == 3 || i % 5 == 4) tileVertices[i] *= TILE_SIZE;
 
     std::vector<float> crossVertices =  {
 		-0.002f,  0.04f,
@@ -93,6 +122,9 @@ void Renderer::init() {
     textureId = loadTexture(vao, assetsDir + "minion.jpg", false);
     blueprints.insert(std::pair(PLAYER, Blueprint {vao, textureId, (unsigned int)(cubeVertices.size() / 3)}));
 
+    vao = loadObject(apexVertices, 3, true, false);
+    blueprints.insert(std::pair(APEX, Blueprint {vao, -1, (unsigned int)(apexVertices.size() / 3)}));
+
     vao = loadObject(crossVertices, 2, false, false);
     blueprints.insert(std::pair(CROSS, Blueprint {vao, -1, (unsigned int)(crossVertices.size() / 2)}));
 }
@@ -117,7 +149,7 @@ void Renderer::render(const Camera &camera) {
 void Renderer::render(const Laser &laser, float visibility) {
     gameShader.setInt("isLaser", 1);
 
-    // render laser
+    //render laser
     auto blueprint = blueprints.at(OBSTACLE);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, blueprint.textureId);
@@ -125,15 +157,15 @@ void Renderer::render(const Laser &laser, float visibility) {
     glBindVertexArray(blueprint.vao);
 
     glm::mat4 model = glm::mat4(1.0f);
-    glm::vec3 origin = Vector3::toGlm(laser.origin);
-    glm::vec3 direction = glm::normalize(Vector3::toGlm(laser.target) - origin);
-    float laserLength = glm::distance(Vector3::toGlm(laser.target), origin);
-    origin += direction * (laserLength / 2.0f + PLAYER_SCALE / 2.0f);
+    glm::vec3 origin = static_cast<glm::vec3>(laser.origin);
+    glm::vec3 direction = glm::normalize(static_cast<glm::vec3>(laser.target) - origin);
+    float laserLength = glm::distance(static_cast<glm::vec3>(laser.target), origin);
+    origin += direction * (laserLength / 2.0f);
     
     model = glm::translate(model, origin);
     glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), direction);
     model *= glm::inverse(glm::lookAt(glm::vec3(0), direction, glm::vec3(0, 1, 0)));
-    float scale = visibility * 0.1;
+    float scale = visibility * 0.05f;
     model = glm::scale(model, glm::vec3(scale, scale, laserLength));
 
     gameShader.setVec4("laserColor", glm::vec4(1.0f, 1.0f, 0.0f, visibility));
@@ -154,14 +186,32 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
     glBindVertexArray(blueprint.vao);
     for (auto const& tile : world.tiles) {
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, Vector3::toGlm(tile.position));
-        model = glm::scale(model, Vector3::toGlm(tile.scale));
+        model = glm::translate(model, static_cast<glm::vec3>(tile.position));
+        model = glm::scale(model, static_cast<glm::vec3>(tile.scale));
         unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
     }
 
     glBindVertexArray(0);
+
+
+    gameShader.setInt("useColor", 1);
+    blueprint = blueprints.at(APEX);
+
+    glBindVertexArray(blueprint.vao);
+    for (auto const& potion : world.potions) {
+        glm::mat4 model = glm::mat4(1.0f);
+
+        model = glm::translate(model, static_cast<glm::vec3>(potion.position));
+        model = glm::scale(model, potion.scale);
+        unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
+    }
+    gameShader.setInt("useColor", 0);
+    glBindVertexArray(0);
+
 
     // render obstacles
     blueprint = blueprints.at(OBSTACLE);
@@ -196,8 +246,8 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
             continue;
         
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, Vector3::toGlm(p.position));
-        glm::vec3 target = Vector3::toGlm(p.front);
+        model = glm::translate(model, static_cast<glm::vec3>(p.position));
+        glm::vec3 target = static_cast<glm::vec3>(p.front);
         glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
         model *= glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
         auto hitPointMatrix = model;
@@ -208,8 +258,8 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
         glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
 
         for (auto const& hitPoint : p.hitPoints) {
-            auto hitDirection = Vector3::toGlm(hitPoint);
-            auto hitModel = glm::translate(hitPointMatrix, hitDirection);
+            glm::vec4 x = hitPointMatrix * glm::vec4(static_cast<glm::vec3>(hitPoint), 1.0f);
+            auto hitModel = glm::translate(hitPointMatrix, static_cast<glm::vec3>(hitPoint));
             hitModel = glm::scale(hitModel, glm::vec3(0.1));
             unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(hitModel));
@@ -258,14 +308,14 @@ unsigned int Renderer::loadObject(std::vector<float> vertices, unsigned short di
     offset += dimensions;
 
     if (hasColor) { // rgb = 3
-        index++;
+        index = 1;
         glVertexAttribPointer(index, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(offset * sizeof(float)));
         glEnableVertexAttribArray(index);
         offset += 3;
     }
 
     if (hasTexture) { // uv = 2
-        index++;
+        index = 2;
         glVertexAttribPointer(index, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(offset * sizeof(float)));
         glEnableVertexAttribArray(index);
         offset += 2;

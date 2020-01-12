@@ -4,6 +4,7 @@
 #include <nop/structure.h>
 #include "vector3.h"
 #include "obstacle.h"
+#include "potion.h"
 
 const float TILE_SIZE = 30.0f;
 
@@ -36,10 +37,13 @@ struct Tile {
     }
 
     static std::pair<int,int> positionToTileLocation(const Vector3& position) {
-        float x = 0, z = 0;
-        x = position.x > 0 ? position.x + (TILE_SIZE/2) : position.x - (TILE_SIZE/2);
-        z = position.z > 0 ? position.z + (TILE_SIZE/2) : position.z - (TILE_SIZE/2);
+        float x = position.x > 0 ? position.x + (TILE_SIZE/2) : position.x - (TILE_SIZE/2);
+        float z = position.z > 0 ? position.z + (TILE_SIZE/2) : position.z - (TILE_SIZE/2);
         return std::pair<int,int>((int)(x / TILE_SIZE), (int)(z / TILE_SIZE));
+    }
+
+    static Vector3 tileLocationToPosition(const std::pair<int,int>& location) {
+        return Vector3 {location.first * TILE_SIZE, 0.0f, location.second * TILE_SIZE};
     }
 
     static std::vector<Tile> calculateTileArea(const std::pair<int,int>& location, const std::map<std::pair<int, int>, Tile>& globalTiles) {

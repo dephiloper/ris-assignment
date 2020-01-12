@@ -17,5 +17,4 @@ int main() {
     p.position = glm::vec3(5,4,5);
     std::vector<Intersectable*> ins;
     ins.push_back(&p);
-    std::cout << "hey" << std::endl;
 }

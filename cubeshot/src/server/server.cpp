@@ -14,6 +14,9 @@ Server::Server(): netManager(5555) {
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LoginMessage), std::make_unique<LoginMessageHandler>(&netManager, &world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LogoutMessage), std::make_unique<LogoutMessageHandler>(&world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(InputMessage), std::make_unique<InputMessageHandler>(&playerInputs)));
+    //Potion p;
+    //p.position = Vector3{0.0, 0.5, 0.0};
+    //world.potions.push_back(p);
 }
 
 void Server::mainLoop() {
@@ -23,6 +26,9 @@ void Server::mainLoop() {
         processMessages();
 
         updatePlayers(deltaTime);
+        
+        updatePotions(deltaTime);
+        
         publishWorld();
 
         auto timeLeft = currentFrame + (1e6 / 60) - Constants::currentMillis();
@@ -44,6 +50,7 @@ void Server::processMessages() {
 
 void Server::updatePlayers(float deltaTime) {
     for(auto& [id, p] : world.players) {
+
         auto input = playerInputs.at(id);
         float velocity = MOVEMENT_SPEED * deltaTime;
 
@@ -65,9 +72,12 @@ void Server::updatePlayers(float deltaTime) {
             direction -= right;
         
         if (input.shoot) {
-            RayCast ray = shootAndCollide(Vector3::toGlm(p.position), Vector3::toGlm(p.front), id);
-            Vector3 target = ray.hit ? Vector3::from(ray.worldIntersection) : Vector3::from(ray.origin + ray.direction * TILE_SIZE);
-            Laser laser { Vector3::from(ray.origin - glm::normalize(glm::cross(right, front)) * (PLAYER_SCALE / 3.0f)), target, Constants::currentMillis() };
+            RayCast ray = shootAndCollide(static_cast<glm::vec3>(p.position), static_cast<glm::vec3>(p.front), id);
+            Laser laser;
+            laser.origin = Vector3::from(ray.origin - glm::normalize(glm::cross(right, front)) * (PLAYER_SCALE / 10.0f));
+            laser.target = ray.hit ? Vector3::from(ray.worldIntersection) : Vector3::from(ray.origin + ray.direction * TILE_SIZE);
+            laser.spawnTime = Constants::currentMillis();
+
             world.lasers.push_back(laser);
             if (!ray.intersectableId.empty())
                 world.players[ray.intersectableId].hitPoints.push_back(Vector3::from(ray.modelIntersection));
@@ -85,16 +95,35 @@ void Server::updatePlayers(float deltaTime) {
             playerLocations[id] = currentLocation;
             for (auto x = currentLocation.first-1; x <= currentLocation.first+1; x++) {
                 for (auto z = currentLocation.second-1; z <= currentLocation.second+1; z++) {
-                    auto tilePos = std::pair(x,z);
+                    auto location = std::pair(x,z);
                     // create tile only when it is non existent
-                    if (globalTiles.count(tilePos) == 0) globalTiles[tilePos] = Tile::generateNewTile(tilePos);
+                    if (globalTiles.count(location) == 0) { 
+                        globalTiles[location] = Tile::generateNewTile(location);
+                        Potion p;
+                        auto pos = Tile::tileLocationToPosition(location);
+                        p.position = Vector3 {pos.x + rand() % (int)TILE_SIZE - TILE_SIZE/2.0f, 0.5f, pos.z + rand() % (int)TILE_SIZE - TILE_SIZE/2.0f };
+                        world.potions.push_back(p);
+                    }
                 }
             }
-            removeUnusedTiles(); // TODO: does not get called when player disconnects!
+            removeObsoleteTiles(); // TODO: does not get called when player disconnects!
             p.enteredNewLocation = true;
         }
 
-        p.position = Vector3::from(moveAndSlide(Vector3::toGlm(p.position), direction));
+        p.position = Vector3::from(moveAndSlide(static_cast<glm::vec3>(p.position), direction));
+    }
+}
+
+void Server::updatePotions(float deltaTime) {
+    if (world.players.size() == 0) return;
+
+    glm::vec3 target = static_cast<glm::vec3>(world.players.begin()->second.position);
+
+    for(auto& potion : world.potions) {
+        potion.position += Vector3::from(potion.seek(target));
+        //std::cout << "steer " << Vector3::from(potion.seek(target)) << std::endl;
+        //std::cout << potion.position << std::endl;
+        potion.position.y = (1 + glm::sin(Constants::currentMillis() / 1e6 * 4.f)) / 4.0f + .25f; // moving up and down between 0.25 and 0.75
     }
 }
 
@@ -118,8 +147,8 @@ RayCast Server::shootAndCollide(const glm::vec3& origin, const glm::vec3& direct
     for (auto const& t : Tile::calculateTileArea(playerLocations[playerId], globalTiles)) {
         for (auto const& obstacle : t.obstacles) {
             Obstacle o = obstacle;
-            o.position = Vector3{o.position.x + t.position.x, o.position.y + t.position.y, o.position.z + t.position.z};
-            float distance = calculateParametricDistance(o, ray); // returns -1 when no intersection between ray and intersectable occures
+            o.position = Vector3{o.position.x + t.position.x, o.position.y, o.position.z + t.position.z};
+            float distance = Collision::calculateParametricDistance(o, ray); // returns -1 when no intersection between ray and intersectable occures
             // when there is an intersection and the intersection point is closer to the ray origin
             if (distance != -1 && distance < closestDistance) {
                 closestRay = ray;
@@ -132,7 +161,7 @@ RayCast Server::shootAndCollide(const glm::vec3& origin, const glm::vec3& direct
     // check all players for intersections
     for (auto& [id, p] : world.players) {
         if (id == playerId) continue; // ignore own faces
-        float distance = calculateParametricDistance(p, ray); // returns -1 when no intersection between ray and intersectable occures
+        float distance = Collision::calculateParametricDistance(p, ray); // returns -1 when no intersection between ray and intersectable occures
         
         // when there is an intersection and the intersection point is closer to the ray origin
         if (distance != -1 && distance < closestDistance) {
@@ -145,70 +174,6 @@ RayCast Server::shootAndCollide(const glm::vec3& origin, const glm::vec3& direct
     return closestRay;
 }
 
-float Server::calculateParametricDistance(const Intersectable& intersectable, RayCast& ray) {
-    float halfWidth = (intersectable.type == PLAYER ? PLAYER_SCALE : OBSTACLE_SCALE) / 2.0f; 
-
-    // calculate translation and rotation matrix of the player
-    glm::mat4 translation = glm::mat4(1.0f);
-    translation = glm::translate(translation, Vector3::toGlm(intersectable.position));
-    glm::vec3 target = Vector3::toGlm(intersectable.front);
-    glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
-    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
-
-    // translate and rotate the rayorigin/raydirection acording to the possible player to hit (player to hit at the origin of the coordinate system)
-    glm::vec4 translatedOrigin = glm::inverse(translation * rotation) * glm::vec4(ray.origin, 1.0f); // translate and rotate ray origin
-    glm::vec4 rotatedDirection = glm::normalize(glm::inverse(rotation) * glm::vec4(ray.direction, 1.0f)); // just rotate the ray direction
-
-    // check all possible face normals if an intersection is possible
-    std::vector<float> distances;
-    std::vector<glm::vec3> modelIntersections;
-    std::vector<glm::vec3> worldIntersections;
-
-    for (auto const& face : faceNormals) {
-        float parametricDistance;
-        if (intersectPlane(-face, face * halfWidth, translatedOrigin, rotatedDirection, parametricDistance)) {
-            glm::vec3 modelIntersection = (translatedOrigin + parametricDistance * rotatedDirection);
-
-            if (cube(modelIntersection, halfWidth) < 0.001) { // apply distance function between intersection point an face plane
-                modelIntersections.push_back(modelIntersection);
-                worldIntersections.push_back(ray.origin + parametricDistance * ray.direction);
-            
-                //std::cout << "intersection point " << s << std::endl;
-                distances.push_back(parametricDistance);
-            }
-        }
-    }
-
-    if (distances.size() > 0) {
-        int minIndex = std::min_element(distances.begin(),distances.end()) - distances.begin();
-        ray.modelIntersection = modelIntersections[minIndex];
-        ray.worldIntersection = worldIntersections[minIndex];
-        ray.length = distances[minIndex];
-        return ray.length;
-    }
-    
-    return -1;
-}
-
-float Server::cube(const glm::vec3& p, float r) {
-    glm::vec3 p2 = glm::abs(p) - r;
-    //return glm::length(glm::max(p2, glm::vec3(0)));
-    return glm::max(p2.x, glm::max(p2.y, p2.z));
-}
-
-bool Server::intersectPlane(const glm::vec3 &n, const glm::vec3 &p0, const glm::vec3 &l0, const glm::vec3 &l, float &t) 
-{ 
-    // assuming vectors are all normalized
-    float denom = glm::dot(n, l); 
-    if (denom > 1e-6) { 
-        auto p0l0 = p0 - l0; 
-        t = glm::dot(p0l0, n) / denom; 
-        return (t >= 0); 
-    } 
- 
-    return false; 
-} 
-
 glm::vec3 Server::moveAndSlide(const glm::vec3& position, const glm::vec3& direction) {
     glm::vec3 destination = position;
     float newX = position.x + direction.x;
@@ -216,15 +181,16 @@ glm::vec3 Server::moveAndSlide(const glm::vec3& position, const glm::vec3& direc
     glm::vec3 newPosX = glm::vec3(newX, 1, position.z);
     glm::vec3 newPosZ = glm::vec3(position.x, 1, newZ);
 
-    if (!checkForCollision(newPosX, COLLISION_RADIUS))
+    if (!circleSquareCollision(newPosX, COLLISION_RADIUS))
         destination.x = newPosX.x;
-    if (!checkForCollision(newPosZ, COLLISION_RADIUS))
+    if (!circleSquareCollision(newPosZ, COLLISION_RADIUS))
         destination.z = newPosZ.z;
     
     return destination;
 }
 
-bool Server::checkForCollision(const glm::vec3& destination, float playerRadius) {
+// player is a circle obstacles are squares
+bool Server::circleSquareCollision(const glm::vec3& destination, float playerRadius) {
     // TODO could be improved just look at the current tile and the destination neighbour tile
     auto location = Tile::positionToTileLocation(Vector3::from(destination));
     for (auto const& tile : Tile::calculateTileArea(location, globalTiles)) {
@@ -250,6 +216,7 @@ void Server::publishWorld() {
         auto msg = std::make_shared<UpdateMessage>();
         msg->senderId = id;
         msg->players = this->world.players;
+        msg->potions = this->world.potions;
         if (this->world.lasers.size() > 0)
             msg->lasers = this->world.lasers;
 
@@ -262,9 +229,9 @@ void Server::publishWorld() {
     this->world.lasers.clear();
 }
 
-void Server::removeUnusedTiles() {
+void Server::removeObsoleteTiles() {
     std::set<std::pair<int, int>> usedLocations;
-
+    std::set<std::pair<int, int>> unusedLocations;
     // get all currently used tile locations of the world
     for (auto const& [id, p] : world.players) {
         auto locations = Tile::calculateLocationArea(Tile::positionToTileLocation(p.position));
@@ -276,9 +243,31 @@ void Server::removeUnusedTiles() {
     {
         // dereference the iterator, access the first item which is the location and erase the item
         // from the global tiles when it is not used
-        if (usedLocations.count((*it).first) == 0)
-            it = globalTiles.erase(it);    // or "it = m.erase(it)" since C++11
-        else
+        auto location = (*it).first;
+        if (usedLocations.count(location) == 0) {
+            unusedLocations.insert(location);
+            it = globalTiles.erase(it);
+        }
+        else {
             ++it;
+        }
+    }
+
+    removeObsoletePotions(unusedLocations);
+}
+
+void Server::removeObsoletePotions(const std::set<std::pair<int, int>>& unusedLocations) {
+    int x = 0;
+    for (auto it = world.potions.cbegin(); it != world.potions.cend();) {
+        auto potion = (*it);
+        auto location = Tile::positionToTileLocation(potion.position);
+
+        if (unusedLocations.count(location) != 0) {
+            it = world.potions.erase(it);
+            x++;
+        }
+        else {
+            ++it;
+        }
     }
 }

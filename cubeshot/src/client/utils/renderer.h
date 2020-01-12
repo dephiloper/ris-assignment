@@ -30,7 +30,7 @@ public:
 private:
     Shader gameShader{};
     Shader uiShader{};
-    enum BlueprintType {TILE, OBSTACLE, PLAYER, CROSS};
+    enum BlueprintType {TILE, OBSTACLE, PLAYER, APEX, CROSS};
     std::map<BlueprintType, Blueprint> blueprints;
     
     unsigned int loadObject(std::vector<float> vertices, unsigned short dimensions, bool hasColor = false, bool hasTexture = false);

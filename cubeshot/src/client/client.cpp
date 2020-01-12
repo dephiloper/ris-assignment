@@ -69,15 +69,15 @@ void Client::mainLoop() {
         
         // update player
         auto localPlayer = world.players[playerId];
-        camera.updatePosition(Vector3::toGlm(localPlayer.position));
+        camera.updatePosition(static_cast<glm::vec3>(localPlayer.position));
         
         renderer.render(camera);
         renderer.render(world, playerId);
 
         int i = 0;
         for (auto const& laser : world.lasers) {
-            auto timeLeft = laser.spawnTime + (1e6/2) - Constants::currentMillis();
-            float visibility = glm::max(timeLeft / (1e6/2), 0.0);
+            auto timeLeft = laser.spawnTime + 0.5e6 - Constants::currentMillis();
+            float visibility = glm::max(timeLeft / 0.5e6, 0.0);
             renderer.render(laser, visibility);
             if (visibility <= 0.01) world.lasers.erase(world.lasers.begin() + i);
             i++;
@@ -136,7 +136,7 @@ void Client::handleMouseButtonInput(int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
         shoot = true;
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-        camera.zoom /= 1.5f;
+        camera.zoom /= 2.0f;
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
         camera.zoom = ZOOM;
 }

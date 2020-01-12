@@ -4,6 +4,8 @@ CMakeFiles/
 Makefile
 CMakeCache.txt
 cmake_install.cmake
+ogl_getting_started/lib
+serialization/lib
 
 # project
 build/

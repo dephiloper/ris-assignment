@@ -6,6 +6,7 @@ void UpdateMessageHandler::handle(NetMessage& message) {
     UpdateMessage msg = dynamic_cast<UpdateMessage&>(message);
     world->players = msg.players;
     world->lasers.insert(world->lasers.end(), msg.lasers.begin(), msg.lasers.end());
+    world->potions = msg.potions;
     if (msg.tiles.size() > 0)
         world->tiles = msg.tiles;
 }

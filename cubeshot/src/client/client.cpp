@@ -74,13 +74,19 @@ void Client::mainLoop() {
         renderer.render(camera);
         renderer.render(world, playerId);
 
-        int i = 0;
-        for (auto const& laser : world.lasers) {
+        auto laserVisibility = [] (const Laser& laser) {
             auto timeLeft = laser.spawnTime + 0.5e6 - Constants::currentMillis();
             float visibility = glm::max(timeLeft / 0.5e6, 0.0);
-            renderer.render(laser, visibility);
-            if (visibility <= 0.01) world.lasers.erase(world.lasers.begin() + i);
-            i++;
+            return visibility;
+        };
+
+        // & turns stateless to stateful so referencing locale variables is possible 
+        world.lasers.erase(std::remove_if(world.lasers.begin(), world.lasers.end(), [&](const Laser& laser) { 
+            return laserVisibility(laser) <= 0.01;
+        }), world.lasers.end());
+
+        for (const auto& laser : world.lasers) {
+            renderer.render(laser, laserVisibility(laser));
         }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

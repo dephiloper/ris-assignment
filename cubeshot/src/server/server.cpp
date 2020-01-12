@@ -76,7 +76,6 @@ void Server::updatePlayers(float deltaTime) {
             Laser laser;
             laser.origin = Vector3::from(ray.origin - glm::normalize(glm::cross(right, front)) * (PLAYER_SCALE / 10.0f));
             laser.target = ray.hit ? Vector3::from(ray.worldIntersection) : Vector3::from(ray.origin + ray.direction * TILE_SIZE);
-            laser.spawnTime = Constants::currentMillis();
 
             world.lasers.push_back(laser);
             if (!ray.intersectableId.empty())

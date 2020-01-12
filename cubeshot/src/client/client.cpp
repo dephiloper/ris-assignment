@@ -85,6 +85,7 @@ void Client::mainLoop() {
             return laserVisibility(laser) <= 0.01;
         }), world.lasers.end());
 
+        
         for (const auto& laser : world.lasers) {
             renderer.render(laser, laserVisibility(laser));
         }

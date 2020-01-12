@@ -8,7 +8,7 @@ struct Laser {
     Vector3 origin;
     Vector3 target;
     int64_t spawnTime{};
-    NOP_STRUCTURE(Laser, origin, target, spawnTime);
+    NOP_STRUCTURE(Laser, origin, target);
 };
 
 #endif //LASER_H

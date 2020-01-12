@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <chrono>
+
 const float PLAYER_SCALE = 0.8f;
 const float OBSTACLE_SCALE = 1.0f;
 

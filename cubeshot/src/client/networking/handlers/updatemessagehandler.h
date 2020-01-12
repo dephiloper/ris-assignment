@@ -5,13 +5,12 @@
 
 #include "../../../shared/networking/messages/updatemessage.h"
 #include "../../../shared/networking/netmessagehandler.h"
-#include <chrono>
+#include "../../../shared/utils/constants.h"
 
 
 class UpdateMessageHandler: public NetMessageHandler {
 private:
     World* world;
-    std::chrono::system_clock::time_point lastTime;
 public:
     UpdateMessageHandler(World* world);
     void handle(NetMessage& message);

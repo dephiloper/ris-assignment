@@ -78,8 +78,10 @@ void Server::updatePlayers(float deltaTime) {
             laser.target = ray.hit ? Vector3::from(ray.worldIntersection) : Vector3::from(ray.origin + ray.direction * TILE_SIZE);
 
             world.lasers.push_back(laser);
-            if (!ray.intersectableId.empty())
+            if (!ray.intersectableId.empty()) {
+                world.players[ray.intersectableId].position = { rand() % (int)TILE_SIZE - TILE_SIZE/2.0f, 0.4f, rand() % (int)TILE_SIZE - TILE_SIZE/2.0f };
                 world.players[ray.intersectableId].hitPoints.push_back(Vector3::from(ray.modelIntersection));
+            }
         }
         
         if (direction != glm::vec3(0))

@@ -14,12 +14,13 @@
 #include <typeinfo>
 #include <set>
 
-#include "physics/collision.h"
-#include "physics/raycast.h"
 #include "networking/servernetmanager.h"
 #include "networking/handlers/loginmessagehandler.h"
 #include "networking/handlers/logoutmessagehandler.h"
 #include "networking/handlers/inputmessagehandler.h"
+#include "../shared/physics/collision.h"
+#include "../shared/physics/raycast.h"
+#include "../shared/physics/helpers.h"
 #include "../shared/networking/netmessagehandler.h"
 #include "../shared/networking/messages/netmessage.h"
 #include "../shared/networking/messages/loginmessage.h"
@@ -50,7 +51,7 @@ private:
     void updatePotions(float deltaTime);
     RayCast shootAndCollide(const glm::vec3& origin, const glm::vec3& direction, const std::string& playerId);
     glm::vec3 moveAndSlide(const glm::vec3& position, const glm::vec3& direction);
-    bool circleSquareCollision(const glm::vec3& destination, float playerRadius);
+    bool checkObstaclesForCollision(const glm::vec3& destination, float playerRadius);
     void publishWorld();
     void removeObsoleteTiles();
     void removeObsoletePotions(const std::set<std::pair<int, int>>& unusedLocations);

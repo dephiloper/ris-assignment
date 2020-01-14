@@ -12,7 +12,7 @@ struct UpdateMessage : NetMessage {
     std::map<std::string, Player> players;
     std::vector<Tile> tiles;
     std::vector<Laser> lasers;
-    std::vector<Potion> potions;
+    Potion potion;
 
     std::string serialize() {
         nop::Serializer<nop::StreamWriter<std::stringstream>> serializer;
@@ -29,7 +29,7 @@ struct UpdateMessage : NetMessage {
         return msg;
     }
     
-    NOP_STRUCTURE(UpdateMessage, players, tiles, lasers, potions);
+    NOP_STRUCTURE(UpdateMessage, players, tiles, lasers, potion);
 };
 
 #endif // UPDATEMESSAGE_H

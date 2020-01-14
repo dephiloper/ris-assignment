@@ -3,18 +3,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
-struct Intersectable {
-    glm::vec3 position;
-};
-
-struct Player : Intersectable {
-    glm::vec3 hitPoints;
-    bool enteredNewLocation = false;
-};
+#include "../shared/tile.h"
 
 int main() {
-    Player p;
-    p.position = glm::vec3(5,4,5);
-    std::vector<Intersectable*> ins;
-    ins.push_back(&p);
+    auto area = Tile::calculateLocationArea(std::pair(2,2));
+    for (auto loc : area) {
+        std::cout << loc.first << ", " << loc.second << std::endl;
+    }
 }

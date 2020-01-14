@@ -12,7 +12,7 @@ void UpdateMessageHandler::handle(NetMessage& message) {
     }); 
 
     world->lasers.insert(world->lasers.end(), msg.lasers.begin(), msg.lasers.end());
-    world->potions = msg.potions;
+    world->potion = msg.potion;
     if (msg.tiles.size() > 0)
         world->tiles = msg.tiles;
 }

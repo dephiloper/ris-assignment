@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "../../shared/intersectable.h"
-#include "../../shared/utils/constants.h"
+#include "../utils/constants.h"
 #include "raycast.h"
 
 const std::vector<glm::vec3> faceNormals = { glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, -1.0f) };
@@ -19,7 +19,7 @@ private:
     }
 
     // see https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection
-    static bool intersectPlane(const glm::vec3 &n, const glm::vec3 &p0, const glm::vec3 &l0, const glm::vec3 &l, float &t) { 
+    static bool linePlaneIntersection(const glm::vec3 &n, const glm::vec3 &p0, const glm::vec3 &l0, const glm::vec3 &l, float &t) { 
         // assuming vectors are all normalized
         float denom = glm::dot(n, l); 
         if (denom > 1e-6) { 
@@ -52,7 +52,7 @@ public:
 
         for (auto const& face : faceNormals) {
             float parametricDistance;
-            if (intersectPlane(-face, face * halfWidth, translatedOrigin, rotatedDirection, parametricDistance)) {
+            if (linePlaneIntersection(-face, face * halfWidth, translatedOrigin, rotatedDirection, parametricDistance)) {
                 glm::vec3 modelIntersection = (translatedOrigin + parametricDistance * rotatedDirection);
                 if (Collision::cubeDistance(modelIntersection, halfWidth) < 0.001) { // apply distance function between intersection point an face plane
                     modelIntersections.push_back(modelIntersection);
@@ -74,6 +74,23 @@ public:
         }
         
         return -1;
+    }
+
+    static bool lineCircleCollision(glm::vec3 pos, glm::vec3 ahead, glm::vec3 ahead2, Obstacle obstacle) {
+        glm::vec3 obstaclePos = static_cast<glm::vec3>(obstacle.position);
+        return glm::distance(obstaclePos, pos) <= obstacle.radius * 2 || glm::distance(obstaclePos, ahead) <= obstacle.radius * 2 || glm::distance(obstaclePos, ahead2) <= obstacle.radius * 2;
+    }
+
+    static bool squareCircleCollision(const glm::vec2& squarePosition, const glm::vec2& circlePosition, float squareWidth, float cirlceRadius) {
+        float testX = circlePosition.x, testZ = circlePosition.y;
+        if (circlePosition.x < squarePosition.x - squareWidth)       testX = squarePosition.x - cirlceRadius; // left edge
+        else if (circlePosition.x > squarePosition.x + squareWidth)  testX = squarePosition.x + cirlceRadius; // right edge
+        if (circlePosition.y < squarePosition.y - squareWidth)       testZ = squarePosition.y - cirlceRadius; // top edge
+        else if (circlePosition.y > squarePosition.y + squareWidth)  testZ = squarePosition.y + cirlceRadius; // bottom edge
+
+        float distance = glm::distance(circlePosition, glm::vec2(testX, testZ));
+        
+        return (distance <= cirlceRadius);
     }
 };
 

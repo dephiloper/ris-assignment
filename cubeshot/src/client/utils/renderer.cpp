@@ -147,8 +147,6 @@ void Renderer::render(const Camera &camera) {
 }
 
 void Renderer::render(const Laser &laser, float visibility) {
-    gameShader.setInt("isLaser", 1);
-
     //render laser
     auto blueprint = blueprints.at(OBSTACLE);
     glActiveTexture(GL_TEXTURE0);
@@ -172,8 +170,8 @@ void Renderer::render(const Laser &laser, float visibility) {
     unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
+    gameShader.setVec4("laserColor", glm::vec4(0.0f));
 
-    gameShader.setInt("isLaser", 0);
 }
 
 void Renderer::render(const World &world, const std::string &localPlayerId) {
@@ -196,23 +194,6 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
     glBindVertexArray(0);
 
 
-    gameShader.setInt("useColor", 1);
-    blueprint = blueprints.at(APEX);
-
-    glBindVertexArray(blueprint.vao);
-    for (auto const& potion : world.potions) {
-        glm::mat4 model = glm::mat4(1.0f);
-
-        model = glm::translate(model, static_cast<glm::vec3>(potion.position));
-        model = glm::scale(model, potion.scale);
-        unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
-    }
-    gameShader.setInt("useColor", 0);
-    glBindVertexArray(0);
-
-
     // render obstacles
     blueprint = blueprints.at(OBSTACLE);
 
@@ -222,15 +203,28 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
     glBindVertexArray(blueprint.vao);
     for (auto const& tile : world.tiles) {
         for (auto const& obstacle : tile.obstacles) {
-            glm::vec3 globalPos{ tile.position.x + obstacle.position.x, obstacle.position.y, tile.position.z + obstacle.position.z };
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, globalPos);
+            model = glm::translate(model, static_cast<glm::vec3>(obstacle.position));
             unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
             glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
         }
     }
 
+    glBindVertexArray(0);
+
+    gameShader.setInt("useColor", 1);
+    blueprint = blueprints.at(APEX);
+
+    glBindVertexArray(blueprint.vao);
+    glm::mat4 model = glm::mat4(1.0f);
+
+    model = glm::translate(model, static_cast<glm::vec3>(world.potion.position));
+    model = glm::scale(model, world.potion.scale);
+    unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
+    gameShader.setInt("useColor", 0);
     glBindVertexArray(0);
 
     // render player

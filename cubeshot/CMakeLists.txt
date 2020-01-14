@@ -12,8 +12,8 @@ include_directories("/usr/include/" "/usr/include/glm" "lib")
 
 add_executable(client_cubeshot ${lib_sources} ${client_sources} ${shared_sources})
 add_executable(server_cubeshot ${lib_sources} ${server_sources} ${shared_sources})
-add_executable(test_cubeshot ${lib_sources} "${CMAKE_CURRENT_LIST_DIR}/src/test/test.cpp")
+add_executable(test_cubeshot ${lib_sources} ${shared_sources} "${CMAKE_CURRENT_LIST_DIR}/src/test/test.cpp")
 
 target_link_libraries(client_cubeshot "glfw" "pthread" "zmq" ${CMAKE_DL_LIBS})
 target_link_libraries(server_cubeshot "glfw" "pthread" "zmq" ${CMAKE_DL_LIBS})
-target_link_libraries(test_cubeshot ${CMAKE_DL_LIBS})
+target_link_libraries(test_cubeshot "glfw" "pthread" "zmq" ${CMAKE_DL_LIBS})

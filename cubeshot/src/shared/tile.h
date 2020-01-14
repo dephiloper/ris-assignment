@@ -5,8 +5,9 @@
 #include "vector3.h"
 #include "obstacle.h"
 #include "potion.h"
+#include <map>
 
-const float TILE_SIZE = 30.0f;
+const float TILE_SIZE = 20.0f;
 
 struct Tile {
     Vector3 position;
@@ -16,9 +17,9 @@ struct Tile {
     static Tile generateNewTile(std::pair<int, int> location) {
         Tile tile;
         tile.position = Vector3{ location.first * tile.scale.x, -0.1, location.second * tile.scale.z };
-        for (auto i = 0; i < 32; i++) {
+        for (auto i = 0; i < (int)(TILE_SIZE*1.5f); i++) {
             Obstacle obstacle;
-            obstacle.position = Vector3{rand() % (int)TILE_SIZE - TILE_SIZE / 2.0f, 0.5f, rand() % (int)TILE_SIZE - TILE_SIZE / 2.0f};
+            obstacle.position = tile.position + Vector3{rand() % (int)TILE_SIZE - TILE_SIZE / 2.0f, 0.6f, rand() % (int)TILE_SIZE - TILE_SIZE / 2.0f};
             obstacle.front = Vector3{0.0, 0.0, 1.0};
             tile.obstacles.push_back(obstacle);
         }
@@ -29,6 +30,8 @@ struct Tile {
         std::vector<std::pair<int, int>> locationArea;
         for (auto x = location.first-1; x <= location.first+1; x++) {
             for (auto z = location.second-1; z <= location.second+1; z++) {
+                //int loopedX = loopValue(x, -2, 2);
+                //int loopedZ = loopValue(z, -2, 2);
                 locationArea.push_back(std::pair<int,int>(x,z));
             }
         }
@@ -49,7 +52,6 @@ struct Tile {
     static std::vector<Tile> calculateTileArea(const std::pair<int,int>& location, const std::map<std::pair<int, int>, Tile>& globalTiles) {
         return tilesFromLocations(calculateLocationArea(location), globalTiles);
     }
-
 
     static std::vector<Tile> tilesFromLocations(const std::vector<std::pair<int, int>>& locations, const std::map<std::pair<int, int>, Tile>& globalTiles) {
         std::vector<Tile> tiles;

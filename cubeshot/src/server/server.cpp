@@ -1,7 +1,6 @@
 #include <map>
 #include "server.h"
 
-
 int main() {
     Server server;
     server.mainLoop();
@@ -14,9 +13,9 @@ Server::Server(): netManager(5555) {
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LoginMessage), std::make_unique<LoginMessageHandler>(&netManager, &world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LogoutMessage), std::make_unique<LogoutMessageHandler>(&world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(InputMessage), std::make_unique<InputMessageHandler>(&playerInputs)));
-    //Potion p;
-    //p.position = Vector3{0.0, 0.5, 0.0};
-    //world.potions.push_back(p);
+    Potion p;
+    p.position = {0.0, 0.25, 0.0};
+    world.potion = p;
 }
 
 void Server::mainLoop() {
@@ -24,11 +23,8 @@ void Server::mainLoop() {
         auto currentFrame = Constants::currentMillis();
         auto deltaTime = (currentFrame - lastFrame) / 1e6f;
         processMessages();
-
         updatePlayers(deltaTime);
-        
         updatePotions(deltaTime);
-        
         publishWorld();
 
         auto timeLeft = currentFrame + (1e6 / 60) - Constants::currentMillis();
@@ -50,10 +46,9 @@ void Server::processMessages() {
 
 void Server::updatePlayers(float deltaTime) {
     for(auto& [id, p] : world.players) {
-
         auto input = playerInputs.at(id);
         float velocity = MOVEMENT_SPEED * deltaTime;
-
+        auto loc = Tile::positionToTileLocation(p.position);
         p.front = input.front;
 
         // calculate front and right vectors
@@ -103,7 +98,7 @@ void Server::updatePlayers(float deltaTime) {
                         Potion p;
                         auto pos = Tile::tileLocationToPosition(location);
                         p.position = Vector3 {pos.x + rand() % (int)TILE_SIZE - TILE_SIZE/2.0f, 0.5f, pos.z + rand() % (int)TILE_SIZE - TILE_SIZE/2.0f };
-                        world.potions.push_back(p);
+                        //world.potions.push_back(p);
                     }
                 }
             }
@@ -112,6 +107,14 @@ void Server::updatePlayers(float deltaTime) {
         }
 
         p.position = Vector3::from(moveAndSlide(static_cast<glm::vec3>(p.position), direction));
+        //p.position.x = loopValue(p.position.x, -TILE_SIZE*2.5f, TILE_SIZE*2.5f);
+        //p.position.z = loopValue(p.position.z, -TILE_SIZE*2.5f, TILE_SIZE*2.5f);
+
+        if (Collision::squareCircleCollision(
+            glm::vec2(world.potion.position.x, world.potion.position.z), 
+            glm::vec2(p.position.x, p.position.z), world.potion.COLLISION_RADIUS, PLAYER_SCALE/2)) {
+                std::cout << Constants::currentMillis() << "now" << std::endl;
+            }
     }
 }
 
@@ -120,12 +123,19 @@ void Server::updatePotions(float deltaTime) {
 
     glm::vec3 target = static_cast<glm::vec3>(world.players.begin()->second.position);
 
-    for(auto& potion : world.potions) {
-        potion.position += Vector3::from(potion.seek(target));
-        //std::cout << "steer " << Vector3::from(potion.seek(target)) << std::endl;
-        //std::cout << potion.position << std::endl;
-        potion.position.y = (1 + glm::sin(Constants::currentMillis() / 1e6 * 4.f)) / 4.0f + .25f; // moving up and down between 0.25 and 0.75
-    }
+    auto location = Tile::positionToTileLocation(Vector3::from(world.potion.position));
+    std::vector<Tile> tileArea = Tile::calculateTileArea(location, globalTiles);
+    std::vector<Obstacle> obstacles;
+    for (const auto& tile : tileArea)
+        obstacles.insert(obstacles.end(), tile.obstacles.begin(), tile.obstacles.end());
+
+    auto avoidance = world.potion.collisionAvoidance(obstacles);
+    auto steering = world.potion.wander() + avoidance;
+    steering = truncate(steering, world.potion.MAX_FORCE);
+    world.potion.velocity = truncate(world.potion.velocity + steering, world.potion.MAX_SPEED);
+    world.potion.position += Vector3::from(world.potion.velocity * deltaTime);
+    // potion.velocity = glm::normalize(potion.velocity);
+    world.potion.position.y = (1 + glm::sin(Constants::currentMillis() / 1e6 * 4.f)) / 8.0f + .25f; // moving up and down between 0.25 and 0.5
 }
 
 template <typename CharT, typename TraitsT, glm::length_t L, typename T, glm::qualifier Q>
@@ -148,7 +158,6 @@ RayCast Server::shootAndCollide(const glm::vec3& origin, const glm::vec3& direct
     for (auto const& t : Tile::calculateTileArea(playerLocations[playerId], globalTiles)) {
         for (auto const& obstacle : t.obstacles) {
             Obstacle o = obstacle;
-            o.position = Vector3{o.position.x + t.position.x, o.position.y, o.position.z + t.position.z};
             float distance = Collision::calculateParametricDistance(o, ray); // returns -1 when no intersection between ray and intersectable occures
             // when there is an intersection and the intersection point is closer to the ray origin
             if (distance != -1 && distance < closestDistance) {
@@ -182,31 +191,25 @@ glm::vec3 Server::moveAndSlide(const glm::vec3& position, const glm::vec3& direc
     glm::vec3 newPosX = glm::vec3(newX, 1, position.z);
     glm::vec3 newPosZ = glm::vec3(position.x, 1, newZ);
 
-    if (!circleSquareCollision(newPosX, COLLISION_RADIUS))
+    if (!checkObstaclesForCollision(newPosX, COLLISION_RADIUS))
         destination.x = newPosX.x;
-    if (!circleSquareCollision(newPosZ, COLLISION_RADIUS))
+    if (!checkObstaclesForCollision(newPosZ, COLLISION_RADIUS))
         destination.z = newPosZ.z;
     
     return destination;
 }
 
 // player is a circle obstacles are squares
-bool Server::circleSquareCollision(const glm::vec3& destination, float playerRadius) {
+bool Server::checkObstaclesForCollision(const glm::vec3& destination, float playerRadius) {
     // TODO could be improved just look at the current tile and the destination neighbour tile
     auto location = Tile::positionToTileLocation(Vector3::from(destination));
     for (auto const& tile : Tile::calculateTileArea(location, globalTiles)) {
         for (auto const& obstacle : tile.obstacles) {
-            float testX = destination.x, testZ = destination.z;
-            Vector3 globalPos = obstacle.position + tile.position;
+            auto square = glm::vec2(obstacle.position.x, obstacle.position.z);
+            auto cirlce = glm::vec2(destination.x, destination.z);
             
-            if (destination.x < globalPos.x - obstacle.radius)       testX = globalPos.x - obstacle.radius; // left edge
-            else if (destination.x > globalPos.x + obstacle.radius)  testX = globalPos.x + obstacle.radius; // right edge
-            if (destination.z < globalPos.z - obstacle.radius)       testZ = globalPos.z - obstacle.radius; // top edge
-            else if (destination.z > globalPos.z + obstacle.radius)  testZ = globalPos.z + obstacle.radius; // bottom edge
-
-            float distance = glm::distance(glm::vec2(destination.x, destination.z), glm::vec2(testX, testZ));
-            
-            if (distance <= playerRadius) return true;
+            if (Collision::squareCircleCollision(square, cirlce, obstacle.radius, playerRadius))
+                return true;
         }
     }
     return false;
@@ -217,11 +220,17 @@ void Server::publishWorld() {
         auto msg = std::make_shared<UpdateMessage>();
         msg->senderId = id;
         msg->players = this->world.players;
-        msg->potions = this->world.potions;
+        msg->potion = this->world.potion;
         if (this->world.lasers.size() > 0)
             msg->lasers = this->world.lasers;
 
         if (p.enteredNewLocation) {
+            auto loc = playerLocations.at(id);
+            auto area = Tile::calculateLocationArea(loc);
+            std::cout << "player " << loc.first << ", " << loc.second << std::endl;
+            for (auto tile : area) {
+                std::cout << "area " << tile.first << ", " << tile.second << std::endl;
+            }
             msg->tiles = Tile::calculateTileArea(playerLocations.at(id), globalTiles);
             p.enteredNewLocation = false;
         }
@@ -248,24 +257,6 @@ void Server::removeObsoleteTiles() {
         if (usedLocations.count(location) == 0) {
             unusedLocations.insert(location);
             it = globalTiles.erase(it);
-        }
-        else {
-            ++it;
-        }
-    }
-
-    removeObsoletePotions(unusedLocations);
-}
-
-void Server::removeObsoletePotions(const std::set<std::pair<int, int>>& unusedLocations) {
-    int x = 0;
-    for (auto it = world.potions.cbegin(); it != world.potions.cend();) {
-        auto potion = (*it);
-        auto location = Tile::positionToTileLocation(potion.position);
-
-        if (unusedLocations.count(location) != 0) {
-            it = world.potions.erase(it);
-            x++;
         }
         else {
             ++it;

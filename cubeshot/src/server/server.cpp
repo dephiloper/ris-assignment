@@ -195,7 +195,7 @@ glm::vec3 Server::moveAndSlide(const glm::vec3& position, const glm::vec3& direc
 
     if (!checkObstaclesForCollision(newPosX, Player::COLLISION_RADIUS))
         destination.x = newPosX.x;
-    if (!checkObstaclesForCollision(newPosZ, Potion::COLLISION_RADIUS))
+    if (!checkObstaclesForCollision(newPosZ, Player::COLLISION_RADIUS))
         destination.z = newPosZ.z;
     
     return destination;

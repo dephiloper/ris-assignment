@@ -11,8 +11,9 @@
 #include "laser.h"
 
 struct World {
-    std::map<std::string, Player> players;
     std::vector<Tile> tiles;
+    
+    std::map<std::string, Player> players;
     std::vector<Laser> lasers;
     Potion potion;
 

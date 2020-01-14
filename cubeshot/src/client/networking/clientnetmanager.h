@@ -8,7 +8,7 @@
 class ClientNetManager : public NetManager
 {
 public:
-    ClientNetManager(const std::string& ipAddress, const int port);
+    ClientNetManager(const std::string& ipAddress, int port);
     void login();
     void logout();
     

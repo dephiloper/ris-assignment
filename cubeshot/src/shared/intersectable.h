@@ -7,11 +7,11 @@
 enum Type { PLAYER, OBSTACLE };
 
 struct Intersectable {
-    Intersectable(Type type) : type(type) {}
+    Intersectable(const Type& type) : type(type) {}
     
     Type type;
-    Vector3 position{0.0, 0.0, 0.0};
-    Vector3 front{0.0, 0.0, 0.0};
+    Vector3 position{0.0f, 0.0f, 0.0f};
+    Vector3 front{0.0f, 0.0f, 0.0f};
 
     NOP_STRUCTURE(Intersectable, position, front);
 };

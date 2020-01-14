@@ -1,7 +1,10 @@
 #include "camera.h"
 
+// most of the functionality of this class is used from the following tutorial
+// https://learnopengl.com/Getting-started/Camera
+
 // Constructor with vectors
-Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(SPEED), mouseSensitivity(SENSITIVITY), zoom(ZOOM)
+Camera::Camera(const glm::vec3& position, const glm::vec3& up, float yaw, float pitch) : front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(SPEED), mouseSensitivity(SENSITIVITY), zoom(ZOOM)
 {
     this->position = position;
     this->worldUp = up;
@@ -72,6 +75,6 @@ void Camera::updateCameraVectors()
     up    = glm::normalize(glm::cross(right, front));
 }
 
-void Camera::updatePosition(glm::vec3 position) {
+void Camera::updatePosition(const glm::vec3& position) {
     this->position = position;
 }

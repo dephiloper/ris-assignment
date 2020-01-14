@@ -6,7 +6,7 @@
 
 class ServerNetManager : public NetManager {
 public:
-    ServerNetManager(const int port);
+    ServerNetManager(int port);
 
 protected:
     void publishData();

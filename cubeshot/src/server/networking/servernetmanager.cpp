@@ -1,6 +1,6 @@
 #include "servernetmanager.h"
 
-ServerNetManager::ServerNetManager(const int port) : NetManager(zmq::socket_type::router, "*", port) { }
+ServerNetManager::ServerNetManager(int port) : NetManager(zmq::socket_type::router, "*", port) { }
 
 void ServerNetManager::publishData() {
     while (isRunning.load()) {

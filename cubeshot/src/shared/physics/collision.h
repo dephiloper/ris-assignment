@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "../../shared/intersectable.h"
-#include "../utils/constants.h"
 #include "raycast.h"
 
 const std::vector<glm::vec3> faceNormals = { glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, -1.0f) };
@@ -32,7 +31,7 @@ private:
 
 public:
     static float calculateParametricDistance(const Intersectable& intersectable, RayCast& ray) {
-        float halfWidth = (intersectable.type == PLAYER ? PLAYER_SCALE : OBSTACLE_SCALE) / 2.0f; 
+        float halfWidth = (intersectable.type == PLAYER ? Player::SCALE : Obstacle::SCALE) / 2.0f; 
 
         // calculate translation and rotation matrix of the player
         glm::mat4 translation = glm::mat4(1.0f);
@@ -76,9 +75,8 @@ public:
         return -1;
     }
 
-    static bool lineCircleCollision(glm::vec3 pos, glm::vec3 ahead, glm::vec3 ahead2, Obstacle obstacle) {
-        glm::vec3 obstaclePos = static_cast<glm::vec3>(obstacle.position);
-        return glm::distance(obstaclePos, pos) <= obstacle.radius * 2 || glm::distance(obstaclePos, ahead) <= obstacle.radius * 2 || glm::distance(obstaclePos, ahead2) <= obstacle.radius * 2;
+    static bool lineCircleCollision(const glm::vec2& lineOrigin, const glm::vec2& ahead, const glm::vec2& ahead2, const glm::vec2& circleOrigin, float radius) {
+        return glm::distance(lineOrigin, circleOrigin) <= radius * 2 || glm::distance(ahead, circleOrigin) <= radius * 2 || glm::distance(ahead2, circleOrigin) <= radius * 2;
     }
 
     static bool squareCircleCollision(const glm::vec2& squarePosition, const glm::vec2& circlePosition, float squareWidth, float cirlceRadius) {

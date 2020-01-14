@@ -7,6 +7,8 @@
 
 struct Obstacle : Intersectable {
     Obstacle() : Intersectable(OBSTACLE) {}
+    static constexpr float SCALE = 1.0f;
+
     float radius = 0.5f;
     
     NOP_STRUCTURE(Obstacle, position);

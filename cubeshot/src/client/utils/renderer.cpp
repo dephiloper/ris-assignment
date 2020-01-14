@@ -93,15 +93,16 @@ void Renderer::init() {
 
     auto tileVertices = cubeVertices;
     for (int i = 0; i < tileVertices.size(); i++)
-        if (i % 5 == 3 || i % 5 == 4) tileVertices[i] *= TILE_SIZE;
+        if (i % 5 == 3 || i % 5 == 4) tileVertices[i] *= Tile::SIZE;
 
+    
     std::vector<float> crossVertices =  {
-		-0.002f,  0.04f,
-		-0.002f, -0.04f,
-		 0.002f, -0.04f,
-		 0.002f, -0.04f,
-		-0.002f,  0.04f,
-		 0.002f,  0.04f,
+		-0.002f,  0.03f,
+		-0.002f, -0.03f,
+		 0.002f, -0.03f,
+		 0.002f, -0.03f,
+		-0.002f,  0.03f,
+		 0.002f,  0.03f,
 
 		-0.03f,  0.002f,
 		-0.03f, -0.002f,
@@ -109,6 +110,12 @@ void Renderer::init() {
 		 0.03f, -0.002f,
 		-0.03f,  0.002f,
 		 0.03f,  0.002f
+    };
+
+    std::vector<float> compassVertices =  {
+        -0.5f, -0.5f,
+         0.5f, -0.5f,
+         0.0f,  1.0f
     };
 
     unsigned int vao = loadObject(tileVertices, 3, false, true);
@@ -127,20 +134,44 @@ void Renderer::init() {
 
     vao = loadObject(crossVertices, 2, false, false);
     blueprints.insert(std::pair(CROSS, Blueprint {vao, -1, (unsigned int)(crossVertices.size() / 2)}));
+
+    vao = loadObject(compassVertices, 2, false, false);
+    blueprints.insert(std::pair(COMPASS, Blueprint {vao, -1, (unsigned int)(compassVertices.size() / 2)}));
 }
 
-void Renderer::render(const Camera &camera) {
-    // render crossair
+void Renderer::renderUi(float compassAngle, float distance, bool compassVisible) {
+    // render cross-hair
     auto blueprint = blueprints.at(CROSS);
     uiShader.use();
     glBindVertexArray(blueprint.vao);
+    glm::mat4 model = glm::mat4(1.0f);
+    float ratio = static_cast<float>(screenHeight)/screenWidth;
+    model = glm::scale(model, glm::vec3(ratio, 1.0f, 1.0f));
+    unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     uiShader.setVec3("color", glm::vec3(1.0f, 1.0f, 1.0f));
     glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
     glBindVertexArray(0);
 
+    if (!compassVisible) return;
+
+    // render compass
+    blueprint = blueprints.at(COMPASS);
+    glBindVertexArray(blueprint.vao);
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, 0.9f, 0.0f));
+    model = glm::rotate(model, compassAngle, glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, glm::vec3(ratio * 0.075f, 0.075f, 0.075f));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    uiShader.setVec3("color", glm::vec3(1.0f, 1.0f, 1.0f));
+    glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
+    glBindVertexArray(0);
+}
+
+void Renderer::render(const Camera &camera) {
     gameShader.use();
-    gameShader.setFloat("tileSize", TILE_SIZE);
-    glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+    gameShader.setFloat("tileSize", Tile::SIZE);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
     gameShader.setMat4("projection", projection);
     glm::mat4 view = camera.getViewMatrix();
     gameShader.setMat4("view", view);
@@ -213,19 +244,21 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
 
     glBindVertexArray(0);
 
-    gameShader.setInt("useColor", 1);
-    blueprint = blueprints.at(APEX);
+    if (world.potion.isActive) {
+        gameShader.setInt("useColor", 1);
+        blueprint = blueprints.at(APEX);
 
-    glBindVertexArray(blueprint.vao);
-    glm::mat4 model = glm::mat4(1.0f);
+        glBindVertexArray(blueprint.vao);
+        glm::mat4 model = glm::mat4(1.0f);
 
-    model = glm::translate(model, static_cast<glm::vec3>(world.potion.position));
-    model = glm::scale(model, world.potion.scale);
-    unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
-    gameShader.setInt("useColor", 0);
-    glBindVertexArray(0);
+        model = glm::translate(model, static_cast<glm::vec3>(world.potion.position));
+        model = glm::scale(model, glm::vec3(Potion::SCALE));
+        unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
+        gameShader.setInt("useColor", 0);
+        glBindVertexArray(0);
+    }
 
     // render player
     blueprint = blueprints.at(PLAYER);
@@ -245,7 +278,7 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
         glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
         model *= glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
         auto hitPointMatrix = model;
-        model = glm::scale(model, glm::vec3(PLAYER_SCALE));
+        model = glm::scale(model, glm::vec3(Player::SCALE));
 
         unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -262,7 +295,7 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
     }
 }
 
-unsigned int Renderer::loadObject(std::vector<float> vertices, unsigned short dimensions, bool hasColor, bool hasTexture) {
+unsigned int Renderer::loadObject(const std::vector<float>& vertices, unsigned short dimensions, bool hasColor, bool hasTexture) {
     unsigned int index = 0;
     unsigned int stride = dimensions;
     unsigned int offset = 0;

@@ -2,12 +2,13 @@
 
 UpdateMessageHandler::UpdateMessageHandler(World* world) : world(world) { }
 
-void UpdateMessageHandler::handle(NetMessage& message) {
-    UpdateMessage msg = dynamic_cast<UpdateMessage&>(message);
+void UpdateMessageHandler::handle(const NetMessage& message) {
+    UpdateMessage msg = dynamic_cast<const UpdateMessage&>(message);
     world->players = msg.players;
 
+    // get all incoming lasers, set the spawn time to the current time and insert the lasers into the local world
     std::transform(msg.lasers.begin(), msg.lasers.end(), std::back_inserter(world->lasers), [] (Laser laser) {
-        laser.spawnTime = Constants::currentMillis();
+        laser.spawnTime = currentMillis();
         return laser;
     }); 
 

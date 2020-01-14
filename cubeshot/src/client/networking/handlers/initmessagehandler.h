@@ -12,7 +12,7 @@ private:
     World* world;
 public:
     InitMessageHandler(std::string* id, World* world);
-    void handle(NetMessage& message);
+    void handle(const NetMessage& message);
 };
 
 #endif // INITHANDLER_H

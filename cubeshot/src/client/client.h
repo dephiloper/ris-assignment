@@ -42,6 +42,7 @@ public:
     void mainLoop();
     void handleMouseInput(double xPos, double yPos);
     void handleMouseButtonInput(int button, int action, int mods);
+    void handleResizeViewport(int width, int height);
 };
 
 void mouseCallback(GLFWwindow* window, double xPos, double yPos);

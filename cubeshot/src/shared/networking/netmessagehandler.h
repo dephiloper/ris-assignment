@@ -6,7 +6,7 @@
 
 class NetMessageHandler {
 public:
-    virtual void handle(NetMessage& message) = 0;
+    virtual void handle(const NetMessage& message) = 0;
 };
 
 #endif // NETMESSAGEHANDLER_H

@@ -11,7 +11,7 @@ private:
     World* world;
 public:
     LogoutMessageHandler(World* world);
-    void handle(NetMessage& message);
+    void handle(const NetMessage& message);
 };
 
 #endif // LOGOUTHANDLER_H

@@ -7,13 +7,8 @@
 
 #include <vector>
 
-// Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
-// enum Camera_Movement {
-//     FORWARD,
-//     BACKWARD,
-//     LEFT,
-//     RIGHT
-// };
+// most of the functionality of this class is used from the following tutorial
+// https://learnopengl.com/Getting-started/Camera
 
 // Default camera values
 const float YAW         = -90.0f;
@@ -43,12 +38,12 @@ public:
     float mouseSensitivity;
     float zoom;
 
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
+    Camera(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f), const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
     Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch);
     glm::mat4 getViewMatrix() const;
     void processMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
     void ProcessMouseScroll(float yoffset);
-    void updatePosition(glm::vec3 position);
+    void updatePosition(const glm::vec3& position);
 
 private:
     // Calculates the front vector from the Camera's (updated) Euler Angles

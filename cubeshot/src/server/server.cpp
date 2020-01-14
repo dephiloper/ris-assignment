@@ -9,25 +9,26 @@ int main() {
 
 Server::Server(): netManager(5555) {
     std::cout << "Server started." << std::endl;
-    netManager.start(netManager);
+    netManager.start();
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LoginMessage), std::make_unique<LoginMessageHandler>(&netManager, &world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(LogoutMessage), std::make_unique<LogoutMessageHandler>(&world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(InputMessage), std::make_unique<InputMessageHandler>(&playerInputs)));
     Potion p;
-    p.position = {0.0, 0.25, 0.0};
+    p.position = {frand() * Tile::SIZE - Tile::SIZE/2, 0.25, frand() * Tile::SIZE - Tile::SIZE/2};
+    p.isActive = true;
     world.potion = p;
 }
 
 void Server::mainLoop() {
     while(isRunning) {
-        auto currentFrame = Constants::currentMillis();
+        auto currentFrame = currentMillis();
         auto deltaTime = (currentFrame - lastFrame) / 1e6f;
         processMessages();
         updatePlayers(deltaTime);
         updatePotions(deltaTime);
         publishWorld();
 
-        auto timeLeft = currentFrame + (1e6 / 60) - Constants::currentMillis();
+        auto timeLeft = currentFrame + (1e6 / 60) - currentMillis();
         usleep(timeLeft < 0 ? 0 : timeLeft);
         if (timeLeft <= 0) std::cout << "\033[1;33mWarning:\033[0m Server doing to much work (time left: " << timeLeft << "us)" << std::endl;
         lastFrame = currentFrame;
@@ -47,7 +48,7 @@ void Server::processMessages() {
 void Server::updatePlayers(float deltaTime) {
     for(auto& [id, p] : world.players) {
         auto input = playerInputs.at(id);
-        float velocity = MOVEMENT_SPEED * deltaTime;
+        float velocity = Player::MOVEMENT_SPEED * deltaTime;
         auto loc = Tile::positionToTileLocation(p.position);
         p.front = input.front;
 
@@ -69,13 +70,17 @@ void Server::updatePlayers(float deltaTime) {
         if (input.shoot) {
             RayCast ray = shootAndCollide(static_cast<glm::vec3>(p.position), static_cast<glm::vec3>(p.front), id);
             Laser laser;
-            laser.origin = Vector3::from(ray.origin - glm::normalize(glm::cross(right, front)) * (PLAYER_SCALE / 10.0f));
-            laser.target = ray.hit ? Vector3::from(ray.worldIntersection) : Vector3::from(ray.origin + ray.direction * TILE_SIZE);
+            laser.origin = Vector3::from(ray.origin - glm::normalize(glm::cross(right, front)) * (Player::SCALE / 10.0f));
+            laser.target = ray.hit ? Vector3::from(ray.worldIntersection) : Vector3::from(ray.origin + ray.direction * Tile::SIZE);
 
             world.lasers.push_back(laser);
             if (!ray.intersectableId.empty()) {
-                world.players[ray.intersectableId].position = { rand() % (int)TILE_SIZE - TILE_SIZE/2.0f, 0.4f, rand() % (int)TILE_SIZE - TILE_SIZE/2.0f };
-                world.players[ray.intersectableId].hitPoints.push_back(Vector3::from(ray.modelIntersection));
+                Player* p = &world.players[ray.intersectableId];
+                p->position = { frand() * Tile::SIZE * 2 - Tile::SIZE, 0.4f, frand() * Tile::SIZE * 2 -  Tile::SIZE };
+                p->hitPoints.push_back(Vector3::from(ray.modelIntersection));
+                p->hasPotion = false;
+                world.potion.position = { frand() * Tile::SIZE * 2 - Tile::SIZE, 0.4f, frand() * Tile::SIZE * 2 -  Tile::SIZE };
+                world.potion.isActive = true;
             }
         }
         
@@ -95,10 +100,6 @@ void Server::updatePlayers(float deltaTime) {
                     // create tile only when it is non existent
                     if (globalTiles.count(location) == 0) { 
                         globalTiles[location] = Tile::generateNewTile(location);
-                        Potion p;
-                        auto pos = Tile::tileLocationToPosition(location);
-                        p.position = Vector3 {pos.x + rand() % (int)TILE_SIZE - TILE_SIZE/2.0f, 0.5f, pos.z + rand() % (int)TILE_SIZE - TILE_SIZE/2.0f };
-                        //world.potions.push_back(p);
                     }
                 }
             }
@@ -107,19 +108,21 @@ void Server::updatePlayers(float deltaTime) {
         }
 
         p.position = Vector3::from(moveAndSlide(static_cast<glm::vec3>(p.position), direction));
-        //p.position.x = loopValue(p.position.x, -TILE_SIZE*2.5f, TILE_SIZE*2.5f);
-        //p.position.z = loopValue(p.position.z, -TILE_SIZE*2.5f, TILE_SIZE*2.5f);
+        // TODO for defining a fixed map size and looping it on x and z
+        //p.position.x = loopValue(p.position.x, -Tile::SIZE*2.5f, Tile::SIZE*2.5f);
+        //p.position.z = loopValue(p.position.z, -Tile::SIZE*2.5f, Tile::SIZE*2.5f);
 
-        if (Collision::squareCircleCollision(
+        if (world.potion.isActive && Collision::squareCircleCollision(
             glm::vec2(world.potion.position.x, world.potion.position.z), 
-            glm::vec2(p.position.x, p.position.z), world.potion.COLLISION_RADIUS, PLAYER_SCALE/2)) {
-                std::cout << Constants::currentMillis() << "now" << std::endl;
-            }
+            glm::vec2(p.position.x, p.position.z), Potion::COLLISION_RADIUS / 2.0f, Player::SCALE / 2.0f)) {
+                p.hasPotion = true;
+                world.potion.isActive = false;
+        }
     }
 }
 
 void Server::updatePotions(float deltaTime) {
-    if (world.players.size() == 0) return;
+    if (world.players.size() == 0 || !world.potion.isActive) return;
 
     glm::vec3 target = static_cast<glm::vec3>(world.players.begin()->second.position);
 
@@ -134,8 +137,7 @@ void Server::updatePotions(float deltaTime) {
     steering = truncate(steering, world.potion.MAX_FORCE);
     world.potion.velocity = truncate(world.potion.velocity + steering, world.potion.MAX_SPEED);
     world.potion.position += Vector3::from(world.potion.velocity * deltaTime);
-    // potion.velocity = glm::normalize(potion.velocity);
-    world.potion.position.y = (1 + glm::sin(Constants::currentMillis() / 1e6 * 4.f)) / 8.0f + .25f; // moving up and down between 0.25 and 0.5
+    world.potion.position.y = (1 + glm::sin(currentMillis() / 1e6 * 4.f)) / 8.0f + .25f; // moving up and down between 0.25 and 0.5
 }
 
 template <typename CharT, typename TraitsT, glm::length_t L, typename T, glm::qualifier Q>
@@ -191,9 +193,9 @@ glm::vec3 Server::moveAndSlide(const glm::vec3& position, const glm::vec3& direc
     glm::vec3 newPosX = glm::vec3(newX, 1, position.z);
     glm::vec3 newPosZ = glm::vec3(position.x, 1, newZ);
 
-    if (!checkObstaclesForCollision(newPosX, COLLISION_RADIUS))
+    if (!checkObstaclesForCollision(newPosX, Player::COLLISION_RADIUS))
         destination.x = newPosX.x;
-    if (!checkObstaclesForCollision(newPosZ, COLLISION_RADIUS))
+    if (!checkObstaclesForCollision(newPosZ, Potion::COLLISION_RADIUS))
         destination.z = newPosZ.z;
     
     return destination;
@@ -227,10 +229,6 @@ void Server::publishWorld() {
         if (p.enteredNewLocation) {
             auto loc = playerLocations.at(id);
             auto area = Tile::calculateLocationArea(loc);
-            std::cout << "player " << loc.first << ", " << loc.second << std::endl;
-            for (auto tile : area) {
-                std::cout << "area " << tile.first << ", " << tile.second << std::endl;
-            }
             msg->tiles = Tile::calculateTileArea(playerLocations.at(id), globalTiles);
             p.enteredNewLocation = false;
         }

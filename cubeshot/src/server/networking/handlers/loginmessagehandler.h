@@ -14,7 +14,7 @@ private:
     NetManager* netManager;
 public:
     LoginMessageHandler(NetManager* netManager, World* world);
-    void handle(NetMessage& message);
+    void handle(const NetMessage& message);
 };
 
 #endif // LOGINHANDLER_H

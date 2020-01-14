@@ -23,6 +23,10 @@ struct Vector3 {
         return Vector3{ lvec.x + rvec.x, lvec.y + rvec.y, lvec.z + rvec.z };
     }
 
+    friend Vector3 operator- (Vector3 lvec, const Vector3& rvec) {
+        return Vector3{ lvec.x - rvec.x, lvec.y - rvec.y, lvec.z - rvec.z };
+    }
+
     Vector3& operator+= (const Vector3& vec) {
         x += vec.x;
         y += vec.y;

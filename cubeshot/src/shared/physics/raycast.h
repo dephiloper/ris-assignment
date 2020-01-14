@@ -4,8 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-class RayCast {
-public:
+struct RayCast {
     RayCast() = default;
     RayCast(glm::vec3 origin, glm::vec3 direction) : origin(origin), direction(direction) {}
     glm::vec3 origin;

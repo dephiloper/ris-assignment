@@ -1,15 +1,16 @@
 #include "netmanager.h"
 
-NetManager::NetManager(zmq::socket_type socketType, const std::string& ipAddress, const int port) : isRunning(false) {
+NetManager::NetManager(const zmq::socket_type& socketType, const std::string& ipAddress, const int port) : isRunning(false) {
     this->socketType = socketType;
     this->ipAddress = ipAddress;
     this->port = port;
 }
 
-void NetManager::start(NetManager& instance) {
+void NetManager::start() {
     socket = zmq::socket_t(context, socketType);
     socket.setsockopt(ZMQ_RCVTIMEO, 10);
-    //socket.setsockopt(ZMQ_LINGER, 500);
+    // TODO not needed for now
+    // socket.setsockopt(ZMQ_LINGER, 500);
     connect();
     isRunning.store(true);
     publishTask = std::thread(&NetManager::publishData, std::ref(*this));

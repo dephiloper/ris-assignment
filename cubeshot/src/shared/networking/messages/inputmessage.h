@@ -10,7 +10,7 @@
 
 struct InputMessage : NetMessage {
     InputMessage() = default;
-    InputMessage(char direction, glm::vec3 front, bool shoot) : direction(direction), front{front.x, front.y, front.z}, shoot(shoot) { }
+    InputMessage(char direction, const glm::vec3& front, bool shoot) : direction(direction), front{front.x, front.y, front.z}, shoot(shoot) { }
     char direction;
     Vector3 front;
     bool shoot;

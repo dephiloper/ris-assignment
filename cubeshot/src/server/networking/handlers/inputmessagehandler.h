@@ -15,7 +15,7 @@ public:
     InputMessageHandler(std::map<std::string, InputMessage>* playerInputs);
     InputMessageHandler() = default;
 
-    void handle(NetMessage& message);
+    void handle(const NetMessage& message);
 };
 
 #endif // MOVEHANDLER_H

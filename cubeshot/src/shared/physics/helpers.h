@@ -4,6 +4,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <math.h>
+#include <chrono>
+
+static constexpr glm::vec3 WORLD_UP = glm::vec3(0.0f, 1.0f, 0.0f);
+
+static int64_t currentMillis() {
+    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
 
 static glm::vec3 truncate(const glm::vec3& vec, float maxValue) {
     return glm::length(vec) > maxValue ? glm::normalize(vec) * maxValue : vec;

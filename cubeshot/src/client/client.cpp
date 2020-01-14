@@ -9,6 +9,7 @@ int main() {
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
+    client.handleResizeViewport(width, height);
 }
 
 void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
@@ -26,7 +27,7 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // use only subset of core functionality
 
     // glfw window creation, check if window is successfully created, otherwise error
-    window = glfwCreateWindow(renderer.SCREEN_WIDTH, renderer.SCREEN_HEIGHT, "Cubeshot", nullptr, nullptr);
+    window = glfwCreateWindow(renderer.screenWidth, renderer.screenHeight, "Cubeshot", nullptr, nullptr);
     if (window == nullptr) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -49,7 +50,7 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 
     stbi_set_flip_vertically_on_load(true);
 
     renderer.init();
-    netManager.start(netManager);
+    netManager.start();
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(InitMessage), std::make_unique<InitMessageHandler>(&playerId, &world)));
     listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(UpdateMessage), std::make_unique<UpdateMessageHandler>(&world)));
     netManager.login();
@@ -71,11 +72,31 @@ void Client::mainLoop() {
         auto localPlayer = world.players[playerId];
         camera.updatePosition(static_cast<glm::vec3>(localPlayer.position));
         
+        glm::vec3 right = glm::normalize(glm::cross(static_cast<glm::vec3>(localPlayer.front), glm::vec3(0.0, 1.0, 0.0)));
+        glm::vec3 yIgnoredFront = glm::normalize(glm::cross(WORLD_UP, right));
+        glm::vec2 playerPos = glm::vec2(localPlayer.position.x, localPlayer.position.z);
+        glm::vec2 target;
+
+        if (world.potion.isActive) {
+            target = glm::vec2(world.potion.position.x, world.potion.position.z);
+        } else if (!localPlayer.hasPotion) {
+            for (const auto& [id, p] : world.players) {
+                if (p.hasPotion) {
+                    target = glm::vec2(p.position.x, p.position.z);
+                }
+            }
+        }
+
+        glm::vec2 direction = glm::normalize(target - playerPos);
+        float angle = acos(glm::dot(direction, glm::normalize(glm::vec2(yIgnoredFront.x, yIgnoredFront.z))));
+        angle *= glm::dot(direction, glm::vec2(right.x, right.z)) < 0 ? 1 : -1;
+        renderer.renderUi(angle, glm::distance(target, playerPos), !localPlayer.hasPotion);
+
         renderer.render(camera);
         renderer.render(world, playerId);
 
         auto laserVisibility = [] (const Laser& laser) {
-            auto timeLeft = laser.spawnTime + 0.5e6 - Constants::currentMillis();
+            auto timeLeft = laser.spawnTime + 0.5e6 - currentMillis();
             float visibility = glm::max(timeLeft / 0.5e6, 0.0);
             return visibility;
         };
@@ -146,6 +167,11 @@ void Client::handleMouseButtonInput(int button, int action, int mods) {
         camera.zoom /= 2.0f;
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
         camera.zoom = ZOOM;
+}
+
+void Client::handleResizeViewport(int width, int height) {
+    renderer.screenWidth = width;
+    renderer.screenHeight = height;
 }
 
 void Client::processMessages() {

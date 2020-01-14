@@ -22,10 +22,10 @@ public:
     BlockingQueue<std::shared_ptr<NetMessage>> queueOut;
     BlockingQueue<std::shared_ptr<NetMessage>> queueIn;
     
-    void start(NetManager& instance);
+    void start();
     void stop();
 protected:
-    NetManager(zmq::socket_type socketType, const std::string& ipAddress, const int port);
+    NetManager(const zmq::socket_type& socketType, const std::string& ipAddress, int port);
     zmq::context_t context;
     zmq::socket_type socketType;
     zmq::socket_t socket;

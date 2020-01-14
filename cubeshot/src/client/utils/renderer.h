@@ -33,8 +33,8 @@ private:
     enum BlueprintType {TILE, OBSTACLE, PLAYER, APEX, CROSS, COMPASS};
     std::map<BlueprintType, Blueprint> blueprints;
     
-    unsigned int loadObject(const std::vector<float>& vertices, unsigned short dimensions, bool hasColor = false, bool hasTexture = false);
-    unsigned int loadTexture(unsigned int vao, const std::string& texturePath, bool alphaChannel);
+    static unsigned int loadObject(const std::vector<float>& vertices, unsigned short dimensions, bool hasColor = false, bool hasTexture = false);
+    static unsigned int loadTexture(unsigned int vao, const std::string& texturePath, bool alphaChannel);
 };
 
 #endif

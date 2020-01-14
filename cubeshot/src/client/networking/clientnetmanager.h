@@ -5,18 +5,17 @@
 #include "../../shared/networking/netmanager.h"
 #include "../../shared/networking/messages/netmessage.h"
 
-class ClientNetManager : public NetManager
-{
+class ClientNetManager : public NetManager {
 public:
-    ClientNetManager(const std::string& ipAddress, int port);
+    ClientNetManager(const std::string &ipAddress, int port);
     void login();
     void logout();
-    
+
 protected:
-    void publishData();
-    void receiveData();
-    void connect();
-    void disconnect();
+    void publishData() override;
+    void receiveData() override;
+    void connect() override;
+    void disconnect() override;
 };
 
 #endif

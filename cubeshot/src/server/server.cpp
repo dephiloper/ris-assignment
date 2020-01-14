@@ -55,7 +55,7 @@ void Server::updatePlayers(float deltaTime) {
         // calculate front and right vectors
         glm::vec3 front = glm::normalize(glm::vec3(p.front.x, 0, p.front.z));
         glm::vec3 right = glm::normalize(glm::cross(front, WORLD_UP));
-        
+
         glm::vec3 direction(0);
 
         if ((input.direction & FORWARD) == FORWARD)
@@ -66,7 +66,7 @@ void Server::updatePlayers(float deltaTime) {
             direction += right;
         if ((input.direction & LEFT) == LEFT)
             direction -= right;
-        
+
         if (input.shoot) {
             RayCast ray = shootAndCollide(static_cast<glm::vec3>(p.position), static_cast<glm::vec3>(p.front), id);
             Laser laser;
@@ -74,23 +74,25 @@ void Server::updatePlayers(float deltaTime) {
             laser.target = ray.hit ? Vector3::from(ray.worldIntersection) : Vector3::from(ray.origin + ray.direction * Tile::SIZE);
 
             world.lasers.push_back(laser);
-            if (!ray.intersectableId.empty()) {
-                Player* p = &world.players[ray.intersectableId];
+            if (!ray.intersectibleId.empty()) {
+                Player* p = &world.players[ray.intersectibleId];
                 p->position = { frand() * Tile::SIZE * 2 - Tile::SIZE, 0.4f, frand() * Tile::SIZE * 2 -  Tile::SIZE };
                 p->hitPoints.push_back(Vector3::from(ray.modelIntersection));
-                p->hasPotion = false;
-                world.potion.position = { frand() * Tile::SIZE * 2 - Tile::SIZE, 0.4f, frand() * Tile::SIZE * 2 -  Tile::SIZE };
-                world.potion.isActive = true;
+                if (p->hasPotion) {
+                    world.potion.position = { frand() * Tile::SIZE * 2 - Tile::SIZE, 0.4f, frand() * Tile::SIZE * 2 -  Tile::SIZE };
+                    world.potion.isActive = true;
+                    p->hasPotion = false;
+                }
             }
         }
-        
+
         if (direction != glm::vec3(0))
             direction = glm::normalize(direction) * velocity;
-        
+
         // --- generate tiles for player ---
 
         auto currentLocation = Tile::positionToTileLocation(p.position);
-        
+
         // player is new or player is entered new tile
         if (playerLocations.count(id) == 0 || playerLocations.at(id) != currentLocation) {
             playerLocations[id] = currentLocation;
@@ -98,7 +100,7 @@ void Server::updatePlayers(float deltaTime) {
                 for (auto z = currentLocation.second-1; z <= currentLocation.second+1; z++) {
                     auto location = std::pair(x,z);
                     // create tile only when it is non existent
-                    if (globalTiles.count(location) == 0) { 
+                    if (globalTiles.count(location) == 0) {
                         globalTiles[location] = Tile::generateNewTile(location);
                     }
                 }
@@ -113,7 +115,7 @@ void Server::updatePlayers(float deltaTime) {
         //p.position.z = loopValue(p.position.z, -Tile::SIZE*2.5f, Tile::SIZE*2.5f);
 
         if (world.potion.isActive && Collision::squareCircleCollision(
-            glm::vec2(world.potion.position.x, world.potion.position.z), 
+            glm::vec2(world.potion.position.x, world.potion.position.z),
             glm::vec2(p.position.x, p.position.z), Potion::COLLISION_RADIUS / 2.0f, Player::SCALE / 2.0f)) {
                 p.hasPotion = true;
                 world.potion.isActive = false;
@@ -140,16 +142,6 @@ void Server::updatePotions(float deltaTime) {
     world.potion.position.y = (1 + glm::sin(currentMillis() / 1e6 * 4.f)) / 8.0f + .25f; // moving up and down between 0.25 and 0.5
 }
 
-template <typename CharT, typename TraitsT, glm::length_t L, typename T, glm::qualifier Q>
-auto& operator<< (std::basic_ostream<CharT, TraitsT>& os, const glm::vec<L, T, Q>& v)
-{
-    os << '(' << v.x;
-    for (auto i = 1ul; i < L; ++i)
-        os << ", " << *(&v.x + i);
-    os << ')';
-    return os;
-}
-
 RayCast Server::shootAndCollide(const glm::vec3& origin, const glm::vec3& direction, const std::string& playerId) {
     RayCast ray(origin, direction);
     RayCast closestRay = ray;
@@ -174,12 +166,12 @@ RayCast Server::shootAndCollide(const glm::vec3& origin, const glm::vec3& direct
     for (auto& [id, p] : world.players) {
         if (id == playerId) continue; // ignore own faces
         float distance = Collision::calculateParametricDistance(p, ray); // returns -1 when no intersection between ray and intersectable occures
-        
+
         // when there is an intersection and the intersection point is closer to the ray origin
         if (distance != -1 && distance < closestDistance) {
             closestRay = ray;
             closestRay.hit = true;
-            closestRay.intersectableId = id;
+            closestRay.intersectibleId = id;
             closestDistance = distance;
         }
     }
@@ -197,7 +189,7 @@ glm::vec3 Server::moveAndSlide(const glm::vec3& position, const glm::vec3& direc
         destination.x = newPosX.x;
     if (!checkObstaclesForCollision(newPosZ, Player::COLLISION_RADIUS))
         destination.z = newPosZ.z;
-    
+
     return destination;
 }
 
@@ -209,7 +201,7 @@ bool Server::checkObstaclesForCollision(const glm::vec3& destination, float play
         for (auto const& obstacle : tile.obstacles) {
             auto square = glm::vec2(obstacle.position.x, obstacle.position.z);
             auto cirlce = glm::vec2(destination.x, destination.z);
-            
+
             if (Collision::squareCircleCollision(square, cirlce, obstacle.radius, playerRadius))
                 return true;
         }

@@ -10,8 +10,8 @@ class LogoutMessageHandler: public NetMessageHandler {
 private:
     World* world;
 public:
-    LogoutMessageHandler(World* world);
-    void handle(const NetMessage& message);
+    explicit LogoutMessageHandler(World* world);
+    void handle(const NetMessage& message) override;
 };
 
 #endif // LOGOUTHANDLER_H

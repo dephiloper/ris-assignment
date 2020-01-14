@@ -13,7 +13,7 @@ struct RayCast {
     float length;
     glm::vec3 modelIntersection;
     glm::vec3 worldIntersection;
-    std::string intersectableId;
+    std::string intersectibleId;
 };
 
 #endif //RAYCAST_H

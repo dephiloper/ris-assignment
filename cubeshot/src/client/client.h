@@ -17,7 +17,6 @@
 #include "networking/handlers/updatemessagehandler.h"
 #include "networking/handlers/initmessagehandler.h"
 
-
 class Client {
 private:
     GLFWwindow* window{};
@@ -32,7 +31,7 @@ private:
 
     float mouseX{};
     float mouseY{};
-    bool shoot;
+    bool shoot{};
 
     void processInput(float deltaTime);
     void processMessages();

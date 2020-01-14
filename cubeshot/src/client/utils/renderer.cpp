@@ -12,140 +12,144 @@ void Renderer::init() {
         std::cout << "Error loading shaders" << std::endl;
 
     std::vector<float> cubeVertices = {
-        // front face
-        -0.5f, -0.5f, -0.5f,  0.5f, 0.5f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.5f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.5f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.5f, 0.5f,
+            // front face
+            -0.5f, -0.5f, -0.5f, 0.5f, 0.5f,
+            0.5f, -0.5f, -0.5f, 1.0f, 0.5f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            -0.5f, 0.5f, -0.5f, 0.5f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.5f, 0.5f,
 
-        // back
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.5f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.5f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            // back
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 0.5f, 0.0f,
+            0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 0.5f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
 
-        // right
-        -0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.5f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.5f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
+            // right
+            -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 0.5f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 0.5f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
 
-        // left    
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
-         0.5f,  0.5f, -0.5f,  0.0f, 0.5f,
-         0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.5f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
+            // left
+            0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, -0.5f, 0.0f, 0.5f,
+            0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 0.5f, 0.0f,
+            0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
 
-        // bottom
-        -0.5f, -0.5f, -0.5f,  0.5f, 0.5f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.5f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.5f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.5f, 0.5f,
+            // bottom
+            -0.5f, -0.5f, -0.5f, 0.5f, 0.5f,
+            0.5f, -0.5f, -0.5f, 1.0f, 0.5f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 0.5f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.5f, 0.5f,
 
-        // top
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  0.5f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
-         0.5f,  0.5f,  0.5f,  0.5f, 0.5f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.5f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+            // top
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, 0.5f, -0.5f, 0.5f, 1.0f,
+            0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 0.5f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
     };
 
     std::vector<float> apexVertices = {
-        // front face
-        -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-         0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,
+            // front face
+            -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
 
-        // back
-        -0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
-         0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,
+            // back
+            -0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+            0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
 
-        // right
-         0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
-         0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,
+            // right
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+            0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
 
-        // left    
-        -0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-         0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f,
+            // left
+            -0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
 
-        // bottom
-        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+            // bottom
+            -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 0.0f,
     };
 
     auto tileVertices = cubeVertices;
     for (int i = 0; i < tileVertices.size(); i++)
         if (i % 5 == 3 || i % 5 == 4) tileVertices[i] *= Tile::SIZE;
 
-    
-    std::vector<float> crossVertices =  {
-		-0.002f,  0.03f,
-		-0.002f, -0.03f,
-		 0.002f, -0.03f,
-		 0.002f, -0.03f,
-		-0.002f,  0.03f,
-		 0.002f,  0.03f,
 
-		-0.03f,  0.002f,
-		-0.03f, -0.002f,
-		 0.03f, -0.002f,
-		 0.03f, -0.002f,
-		-0.03f,  0.002f,
-		 0.03f,  0.002f
+    std::vector<float> crossVertices = {
+            -0.002f, 0.03f,
+            -0.002f, -0.03f,
+            0.002f, -0.03f,
+            0.002f, -0.03f,
+            -0.002f, 0.03f,
+            0.002f, 0.03f,
+
+            -0.03f, 0.002f,
+            -0.03f, -0.002f,
+            0.03f, -0.002f,
+            0.03f, -0.002f,
+            -0.03f, 0.002f,
+            0.03f, 0.002f
     };
 
-    std::vector<float> compassVertices =  {
-        -0.5f, -0.5f,
-         0.5f, -0.5f,
-         0.0f,  1.0f
+    std::vector<float> compassVertices = {
+            -0.5f, -0.5f,
+            0.5f, -0.5f,
+            0.0f, 1.0f
     };
 
     unsigned int vao = loadObject(tileVertices, 3, false, true);
-    int textureId = loadTexture(vao, assetsDir + "cube0_texture.png", false);
-    blueprints.insert(std::pair(TILE, Blueprint {vao, textureId, (unsigned int)(tileVertices.size() / 3)}));
+    unsigned int textureId = loadTexture(vao, assetsDir + "cube0_texture.png", false);
+    blueprints.insert(
+            std::pair(TILE, Blueprint{vao, static_cast<int>(textureId), (unsigned int) (tileVertices.size() / 3)}));
 
     vao = loadObject(cubeVertices, 3, false, true);
     textureId = loadTexture(vao, assetsDir + "cube0_texture.png", false);
-    blueprints.insert(std::pair(OBSTACLE, Blueprint {vao, textureId, (unsigned int)(cubeVertices.size() / 3)}));
+    blueprints.insert(
+            std::pair(OBSTACLE, Blueprint{vao, static_cast<int>(textureId), (unsigned int) (cubeVertices.size() / 3)}));
 
     textureId = loadTexture(vao, assetsDir + "minion.jpg", false);
-    blueprints.insert(std::pair(PLAYER, Blueprint {vao, textureId, (unsigned int)(cubeVertices.size() / 3)}));
+    blueprints.insert(
+            std::pair(PLAYER, Blueprint{vao, static_cast<int>(textureId), (unsigned int) (cubeVertices.size() / 3)}));
 
     vao = loadObject(apexVertices, 3, true, false);
-    blueprints.insert(std::pair(APEX, Blueprint {vao, -1, (unsigned int)(apexVertices.size() / 3)}));
+    blueprints.insert(std::pair(APEX, Blueprint{vao, -1, (unsigned int) (apexVertices.size() / 3)}));
 
     vao = loadObject(crossVertices, 2, false, false);
-    blueprints.insert(std::pair(CROSS, Blueprint {vao, -1, (unsigned int)(crossVertices.size() / 2)}));
+    blueprints.insert(std::pair(CROSS, Blueprint{vao, -1, (unsigned int) (crossVertices.size() / 2)}));
 
     vao = loadObject(compassVertices, 2, false, false);
-    blueprints.insert(std::pair(COMPASS, Blueprint {vao, -1, (unsigned int)(compassVertices.size() / 2)}));
+    blueprints.insert(std::pair(COMPASS, Blueprint{vao, -1, (unsigned int) (compassVertices.size() / 2)}));
 }
 
+// TODO use distance in shader
 void Renderer::renderUi(float compassAngle, float distance, bool compassVisible) {
     // render cross-hair
     auto blueprint = blueprints.at(CROSS);
     uiShader.use();
     glBindVertexArray(blueprint.vao);
     glm::mat4 model = glm::mat4(1.0f);
-    float ratio = static_cast<float>(screenHeight)/screenWidth;
+    float ratio = static_cast<float>(screenHeight) / static_cast<float>(screenWidth);
     model = glm::scale(model, glm::vec3(ratio, 1.0f, 1.0f));
     unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -171,7 +175,8 @@ void Renderer::renderUi(float compassAngle, float distance, bool compassVisible)
 void Renderer::render(const Camera &camera) {
     gameShader.use();
     gameShader.setFloat("tileSize", Tile::SIZE);
-    glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float) screenWidth / (float) screenHeight, 0.1f,
+                                            100.0f);
     gameShader.setMat4("projection", projection);
     glm::mat4 view = camera.getViewMatrix();
     gameShader.setMat4("view", view);
@@ -186,11 +191,11 @@ void Renderer::render(const Laser &laser, float visibility) {
     glBindVertexArray(blueprint.vao);
 
     glm::mat4 model = glm::mat4(1.0f);
-    glm::vec3 origin = static_cast<glm::vec3>(laser.origin);
+    auto origin = static_cast<glm::vec3>(laser.origin);
     glm::vec3 direction = glm::normalize(static_cast<glm::vec3>(laser.target) - origin);
     float laserLength = glm::distance(static_cast<glm::vec3>(laser.target), origin);
     origin += direction * (laserLength / 2.0f);
-    
+
     model = glm::translate(model, origin);
     glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), direction);
     model *= glm::inverse(glm::lookAt(glm::vec3(0), direction, glm::vec3(0, 1, 0)));
@@ -213,7 +218,7 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
     glBindTexture(GL_TEXTURE_2D, blueprint.textureId);
 
     glBindVertexArray(blueprint.vao);
-    for (auto const& tile : world.tiles) {
+    for (auto const &tile : world.tiles) {
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, static_cast<glm::vec3>(tile.position));
         model = glm::scale(model, static_cast<glm::vec3>(tile.scale));
@@ -230,10 +235,10 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, blueprint.textureId);
-    
+
     glBindVertexArray(blueprint.vao);
-    for (auto const& tile : world.tiles) {
-        for (auto const& obstacle : tile.obstacles) {
+    for (auto const &tile : world.tiles) {
+        for (auto const &obstacle : tile.obstacles) {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, static_cast<glm::vec3>(obstacle.position));
             unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
@@ -267,14 +272,13 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
     glBindTexture(GL_TEXTURE_2D, blueprint.textureId);
     glBindVertexArray(blueprint.vao);
 
-    for (auto const& [id, p] : world.players)
-    {
+    for (auto const&[id, p] : world.players) {
         if (id == localPlayerId)
             continue;
-        
+
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, static_cast<glm::vec3>(p.position));
-        glm::vec3 target = static_cast<glm::vec3>(p.front);
+        auto target = static_cast<glm::vec3>(p.front);
         glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
         model *= glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
         auto hitPointMatrix = model;
@@ -284,18 +288,18 @@ void Renderer::render(const World &world, const std::string &localPlayerId) {
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
 
-        for (auto const& hitPoint : p.hitPoints) {
+        for (auto const &hitPoint : p.hitPoints) {
             glm::vec4 x = hitPointMatrix * glm::vec4(static_cast<glm::vec3>(hitPoint), 1.0f);
             auto hitModel = glm::translate(hitPointMatrix, static_cast<glm::vec3>(hitPoint));
             hitModel = glm::scale(hitModel, glm::vec3(0.1));
-            unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(hitModel));
             glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
         }
     }
 }
 
-unsigned int Renderer::loadObject(const std::vector<float>& vertices, unsigned short dimensions, bool hasColor, bool hasTexture) {
+unsigned int
+Renderer::loadObject(const std::vector<float> &vertices, unsigned short dimensions, bool hasColor, bool hasTexture) {
     unsigned int index = 0;
     unsigned int stride = dimensions;
     unsigned int offset = 0;
@@ -325,27 +329,26 @@ unsigned int Renderer::loadObject(const std::vector<float>& vertices, unsigned s
     // 3.1: GL_STATIC_DRAW (data does not change or very rarely)
     // 3.2: GL_DYNAMIC_DRAW (data changes a lot)
     // 3.3: GL_STREAM_DRAW (data> changes on every draw) -> 3.2 & 3.3 data is placed in memory for faster drawing
-    
+
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
     //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // 3. set vertex attribute pointers (need explanation)
-    glVertexAttribPointer(index, dimensions, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)nullptr);
+    glVertexAttribPointer(index, dimensions, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void *) nullptr);
     glEnableVertexAttribArray(0);
     offset += dimensions;
 
     if (hasColor) { // rgb = 3
         index = 1;
-        glVertexAttribPointer(index, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(offset * sizeof(float)));
+        glVertexAttribPointer(index, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void *) (offset * sizeof(float)));
         glEnableVertexAttribArray(index);
         offset += 3;
     }
 
     if (hasTexture) { // uv = 2
         index = 2;
-        glVertexAttribPointer(index, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(offset * sizeof(float)));
+        glVertexAttribPointer(index, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void *) (offset * sizeof(float)));
         glEnableVertexAttribArray(index);
-        offset += 2;
     }
 
     // unbind buffer and vertex array so VAO calls don't accidentally modify VAO, but it's not necessary
@@ -355,11 +358,11 @@ unsigned int Renderer::loadObject(const std::vector<float>& vertices, unsigned s
     return VAO;
 }
 
-unsigned int Renderer::loadTexture(unsigned int vao, const std::string& texturePath, bool alphaChannel) {
+unsigned int Renderer::loadTexture(unsigned int vao, const std::string &texturePath, bool alphaChannel) {
     GLenum format = alphaChannel ? GL_RGBA : GL_RGB;
-    
+
     glBindVertexArray(vao);
-    
+
     unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);

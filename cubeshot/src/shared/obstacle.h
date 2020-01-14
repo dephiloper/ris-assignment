@@ -3,10 +3,10 @@
 
 #include <nop/structure.h>
 #include "vector3.h"
-#include "intersectable.h"
+#include "intersectible.h"
 
-struct Obstacle : Intersectable {
-    Obstacle() : Intersectable(OBSTACLE) {}
+struct Obstacle : Intersectible {
+    Obstacle() : Intersectible(OBSTACLE) {}
     static constexpr float SCALE = 1.0f;
 
     float radius = 0.5f;

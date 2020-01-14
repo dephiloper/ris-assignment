@@ -1,5 +1,5 @@
-#ifndef MOVEHANDLER_H
-#define MOVEHANDLER_H
+#ifndef INPUTMESSAGEHANDLER_H
+#define INPUTMESSAGEHANDLER_H
 
 #include <iostream>
 
@@ -9,13 +9,13 @@
 
 class InputMessageHandler : public NetMessageHandler {
 private:
-    std::map<std::string, InputMessage>* playerInputs;
+    std::map<std::string, InputMessage>* playerInputs{};
 
 public:
-    InputMessageHandler(std::map<std::string, InputMessage>* playerInputs);
+    explicit InputMessageHandler(std::map<std::string, InputMessage>* playerInputs);
     InputMessageHandler() = default;
 
-    void handle(const NetMessage& message);
+    void handle(const NetMessage& message) override;
 };
 
-#endif // MOVEHANDLER_H
+#endif // INPUTMESSAGEHANDLER_H

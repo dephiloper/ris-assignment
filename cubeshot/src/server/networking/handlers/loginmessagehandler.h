@@ -1,8 +1,8 @@
-#ifndef LOGINHANDLER_H
+#ifndef LOGMOVEHANDLERINHANDLER_H
 #define LOGINHANDLER_H
 
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "../../../shared/networking/messages/loginmessage.h"
 #include "../../../shared/networking/netmessagehandler.h"
@@ -14,7 +14,7 @@ private:
     NetManager* netManager;
 public:
     LoginMessageHandler(NetManager* netManager, World* world);
-    void handle(const NetMessage& message);
+    void handle(const NetMessage& message) override;
 };
 
 #endif // LOGINHANDLER_H

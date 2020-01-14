@@ -7,12 +7,12 @@
 #include "../../../shared/networking/netmessagehandler.h"
 
 
-class UpdateMessageHandler: public NetMessageHandler {
+class UpdateMessageHandler : public NetMessageHandler {
 private:
-    World* world;
+    World *world;
 public:
-    UpdateMessageHandler(World* world);
-    void handle(const NetMessage& message);
+    explicit UpdateMessageHandler(World *world);
+    void handle(const NetMessage &message) override;
 };
 
 #endif // NETMESSAGEHANDLER_H

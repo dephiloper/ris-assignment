@@ -26,7 +26,7 @@ private:
             bool collision = Collision::lineCircleCollision(pos, ahead, ahead2, oPos, o.radius);
 
             if (collision) {
-                // no closest obstalce or this one is closer than the previous one
+                // no closest obstacle or this one is closer than the previous one
                 if (closestObstacle == std::nullopt || glm::distance(pos, oPos) < glm::distance(pos, glm::vec2(closestObstacle->position.x, closestObstacle->position.z))) {
                     closestObstacle = o;
                 }

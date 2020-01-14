@@ -7,17 +7,17 @@ int main() {
     return 0;
 }
 
-void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
+void framebufferSizeCallback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
     client.handleResizeViewport(width, height);
 }
 
-void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
+void mouseCallback(GLFWwindow *window, double xPos, double yPos) {
     client.handleMouseInput(xPos, yPos);
 }
 
-void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-   client.handleMouseButtonInput(button, action, mods);
+void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
+    client.handleMouseButtonInput(button, action, mods);
 }
 
 Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 5555) {
@@ -40,7 +40,7 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 
     //glfwSetScrollCallback(window, scroll_callback);
 
     // glad: load all OpenGL function pointers, check if glad is successfully included
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
         std::cout << "Failed to initialize GLAD" << std::endl;
 
     glEnable(GL_DEPTH_TEST);
@@ -51,14 +51,18 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 
 
     renderer.init();
     netManager.start();
-    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(InitMessage), std::make_unique<InitMessageHandler>(&playerId, &world)));
-    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(UpdateMessage), std::make_unique<UpdateMessageHandler>(&world)));
+    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(InitMessage),
+                                                                                    std::make_unique<InitMessageHandler>(
+                                                                                            &playerId, &world)));
+    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(UpdateMessage),
+                                                                                    std::make_unique<UpdateMessageHandler>(
+                                                                                            &world)));
     netManager.login();
 }
 
 void Client::mainLoop() {
-    while(!glfwWindowShouldClose(window)) {
-        auto currentFrame = (float)glfwGetTime();
+    while (!glfwWindowShouldClose(window)) {
+        auto currentFrame = (float) glfwGetTime();
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
@@ -67,12 +71,13 @@ void Client::mainLoop() {
 
         processInput(deltaTime);
         processMessages();
-        
+
         // update player
         auto localPlayer = world.players[playerId];
         camera.updatePosition(static_cast<glm::vec3>(localPlayer.position));
-        
-        glm::vec3 right = glm::normalize(glm::cross(static_cast<glm::vec3>(localPlayer.front), glm::vec3(0.0, 1.0, 0.0)));
+
+        glm::vec3 right = glm::normalize(
+                glm::cross(static_cast<glm::vec3>(localPlayer.front), glm::vec3(0.0, 1.0, 0.0)));
         glm::vec3 yIgnoredFront = glm::normalize(glm::cross(WORLD_UP, right));
         glm::vec2 playerPos = glm::vec2(localPlayer.position.x, localPlayer.position.z);
         glm::vec2 target;
@@ -80,7 +85,7 @@ void Client::mainLoop() {
         if (world.potion.isActive) {
             target = glm::vec2(world.potion.position.x, world.potion.position.z);
         } else if (!localPlayer.hasPotion) {
-            for (const auto& [id, p] : world.players) {
+            for (const auto&[id, p] : world.players) {
                 if (p.hasPotion) {
                     target = glm::vec2(p.position.x, p.position.z);
                 }
@@ -95,19 +100,19 @@ void Client::mainLoop() {
         renderer.render(camera);
         renderer.render(world, playerId);
 
-        auto laserVisibility = [] (const Laser& laser) {
+        auto laserVisibility = [](const Laser &laser) {
             auto timeLeft = laser.spawnTime + 0.5e6 - currentMillis();
             float visibility = glm::max(timeLeft / 0.5e6, 0.0);
             return visibility;
         };
 
         // & turns stateless to stateful so referencing locale variables is possible 
-        world.lasers.erase(std::remove_if(world.lasers.begin(), world.lasers.end(), [&](const Laser& laser) { 
+        world.lasers.erase(std::remove_if(world.lasers.begin(), world.lasers.end(), [&](const Laser &laser) {
             return laserVisibility(laser) <= 0.01;
         }), world.lasers.end());
 
-        
-        for (const auto& laser : world.lasers) {
+
+        for (const auto &laser : world.lasers) {
             renderer.render(laser, laserVisibility(laser));
         }
 
@@ -120,20 +125,20 @@ void Client::mainLoop() {
 }
 
 void Client::processInput(float deltaTime) {
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
     // http://disq.us/p/1nt0anm
-    if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-    if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     char direction = 0;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        direction |= FORWARD; 
+        direction |= FORWARD;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         direction |= BACKWARD;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -143,7 +148,7 @@ void Client::processInput(float deltaTime) {
 
     netManager.queueOut.push(std::make_shared<InputMessage>(direction, camera.front, shoot));
     shoot = false;
-    
+
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     else if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED)
@@ -151,11 +156,11 @@ void Client::processInput(float deltaTime) {
 }
 
 void Client::handleMouseInput(double xPos, double yPos) {
-    float xOffset = ((float)xPos) - mouseX;
-    float yOffset = mouseY - ((float)yPos); // reversed since y-coordinates go from bottom to top
+    float xOffset = ((float) xPos) - mouseX;
+    float yOffset = mouseY - ((float) yPos); // reversed since y-coordinates go from bottom to top
 
-    mouseX = (float)xPos;
-    mouseY = (float)yPos;
+    mouseX = (float) xPos;
+    mouseY = (float) yPos;
 
     camera.processMouseMovement(xOffset, yOffset);
 }

@@ -7,7 +7,6 @@
 #include "potion.h"
 #include <map>
 
-
 struct Tile {
 public:
     static constexpr float SIZE = 20.0f;

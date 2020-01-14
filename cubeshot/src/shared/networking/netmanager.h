@@ -16,7 +16,6 @@
 #include "messages/updatemessage.h"
 #include "messages/inputmessage.h"
 
-
 class NetManager {
 public:
     BlockingQueue<std::shared_ptr<NetMessage>> queueOut;

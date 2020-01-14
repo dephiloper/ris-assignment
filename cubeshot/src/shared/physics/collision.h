@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "../../shared/intersectable.h"
+#include "../intersectible.h"
 #include "raycast.h"
 
 const std::vector<glm::vec3> faceNormals = { glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, -1.0f) };
@@ -30,7 +30,7 @@ private:
     }
 
 public:
-    static float calculateParametricDistance(const Intersectable& intersectable, RayCast& ray) {
+    static float calculateParametricDistance(const Intersectible& intersectable, RayCast& ray) {
         float halfWidth = (intersectable.type == PLAYER ? Player::SCALE : Obstacle::SCALE) / 2.0f; 
 
         // calculate translation and rotation matrix of the player
@@ -40,7 +40,7 @@ public:
         glm::vec3 r = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), target);
         glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0), target, glm::vec3(0, 1, 0)));
 
-        // translate and rotate the rayorigin/raydirection acording to the possible player to hit (player to hit at the origin of the coordinate system)
+        // translate and rotate the ray origin/ray direction according to the possible player to hit (player to hit at the origin of the coordinate system)
         glm::vec4 translatedOrigin = glm::inverse(translation * rotation) * glm::vec4(ray.origin, 1.0f); // translate and rotate ray origin
         glm::vec4 rotatedDirection = glm::normalize(glm::inverse(rotation) * glm::vec4(ray.direction, 1.0f)); // just rotate the ray direction
 
@@ -79,16 +79,16 @@ public:
         return glm::distance(lineOrigin, circleOrigin) <= radius * 2 || glm::distance(ahead, circleOrigin) <= radius * 2 || glm::distance(ahead2, circleOrigin) <= radius * 2;
     }
 
-    static bool squareCircleCollision(const glm::vec2& squarePosition, const glm::vec2& circlePosition, float squareWidth, float cirlceRadius) {
+    static bool squareCircleCollision(const glm::vec2& squarePosition, const glm::vec2& circlePosition, float squareWidth, float circleRadius) {
         float testX = circlePosition.x, testZ = circlePosition.y;
-        if (circlePosition.x < squarePosition.x - squareWidth)       testX = squarePosition.x - cirlceRadius; // left edge
-        else if (circlePosition.x > squarePosition.x + squareWidth)  testX = squarePosition.x + cirlceRadius; // right edge
-        if (circlePosition.y < squarePosition.y - squareWidth)       testZ = squarePosition.y - cirlceRadius; // top edge
-        else if (circlePosition.y > squarePosition.y + squareWidth)  testZ = squarePosition.y + cirlceRadius; // bottom edge
+        if (circlePosition.x < squarePosition.x - squareWidth)       testX = squarePosition.x - circleRadius; // left edge
+        else if (circlePosition.x > squarePosition.x + squareWidth)  testX = squarePosition.x + circleRadius; // right edge
+        if (circlePosition.y < squarePosition.y - squareWidth)       testZ = squarePosition.y - circleRadius; // top edge
+        else if (circlePosition.y > squarePosition.y + squareWidth)  testZ = squarePosition.y + circleRadius; // bottom edge
 
         float distance = glm::distance(circlePosition, glm::vec2(testX, testZ));
         
-        return (distance <= cirlceRadius);
+        return (distance <= circleRadius);
     }
 };
 

@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <iostream>
 #include <thread>
@@ -49,7 +49,6 @@ private:
     bool checkObstaclesForCollision(const glm::vec3& destination, float playerRadius);
     void publishWorld();
     void removeObsoleteTiles();
-    void removeObsoletePotions(const std::set<std::pair<int, int>>& unusedLocations);
 public:
     Server();
     void mainLoop();

@@ -3,10 +3,10 @@
 
 #include <nop/structure.h>
 #include "vector3.h"
-#include "intersectable.h"
+#include "intersectible.h"
 
-struct Player : Intersectable {
-    Player() : Intersectable(PLAYER) {};
+struct Player : Intersectible {
+    Player() : Intersectible(PLAYER) {};
     static constexpr float MOVEMENT_SPEED = 4.0f;
     static constexpr float SCALE = 0.8f;
     // correct collision radius would be std::sqrt(std::pow(PLAYER_SCALE, 2.0f) * 2.0f) / 2.0f;

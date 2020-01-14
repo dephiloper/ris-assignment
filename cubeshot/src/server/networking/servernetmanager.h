@@ -6,13 +6,13 @@
 
 class ServerNetManager : public NetManager {
 public:
-    ServerNetManager(int port);
+    explicit ServerNetManager(int port);
 
 protected:
-    void publishData();
-    void receiveData();
-    void connect();
-    void disconnect();
+    void publishData() override;
+    void receiveData() override;
+    void connect() override;
+    void disconnect() override;
 };
 
 #endif

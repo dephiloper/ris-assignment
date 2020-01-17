@@ -16,6 +16,7 @@
 #include "../shared/networking/netmessagehandler.h"
 #include "networking/handlers/updatemessagehandler.h"
 #include "networking/handlers/initmessagehandler.h"
+#include "numeric"
 
 class Client {
 private:
@@ -28,6 +29,8 @@ private:
     std::map<std::type_index, std::shared_ptr<NetMessageHandler>> listeners;
     std::string playerId;
     InputMessage input;
+    glm::vec2 target;
+    int64_t nextUpdateTimestamp = std::numeric_limits<int64_t>::max();
 
     float mouseX{};
     float mouseY{};

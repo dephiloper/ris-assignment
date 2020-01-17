@@ -81,8 +81,16 @@ void Client::mainLoop() {
         glm::vec3 yIgnoredFront = glm::normalize(glm::cross(WORLD_UP, right));
         glm::vec2 playerPos = glm::vec2(localPlayer.position.x, localPlayer.position.z);
         glm::vec2 target;
+	bool targetFound = false;	
+	
+    	for (const auto&[id, p] : world.players) {
+	   if (id != playerId) {
+	      target = glm::vec2(p.position.x, p.position.z);
+	      targetFound = true;
+	   }
+        }
 
-        if (world.potion.isActive) {
+        /*if (world.potion.isActive) {
             target = glm::vec2(world.potion.position.x, world.potion.position.z);
         } else if (!localPlayer.hasPotion) {
             for (const auto&[id, p] : world.players) {
@@ -90,12 +98,12 @@ void Client::mainLoop() {
                     target = glm::vec2(p.position.x, p.position.z);
                 }
             }
-        }
+        }*/
 
         glm::vec2 direction = glm::normalize(target - playerPos);
         float angle = acos(glm::dot(direction, glm::normalize(glm::vec2(yIgnoredFront.x, yIgnoredFront.z))));
         angle *= glm::dot(direction, glm::vec2(right.x, right.z)) < 0 ? 1 : -1;
-        renderer.renderUi(angle, glm::distance(target, playerPos), !localPlayer.hasPotion);
+        renderer.renderUi(angle, glm::distance(target, playerPos), targetFound);
 
         renderer.render(camera);
         renderer.render(world, playerId);

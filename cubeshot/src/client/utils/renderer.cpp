@@ -153,7 +153,7 @@ void Renderer::renderUi(float compassAngle, float distance, bool compassVisible)
     model = glm::scale(model, glm::vec3(ratio, 1.0f, 1.0f));
     unsigned int modelLoc = glGetUniformLocation(gameShader.ID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    uiShader.setVec3("color", glm::vec3(1.0f, 1.0f, 1.0f));
+    uiShader.setVec4("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
     glBindVertexArray(0);
 
@@ -167,7 +167,8 @@ void Renderer::renderUi(float compassAngle, float distance, bool compassVisible)
     model = glm::rotate(model, compassAngle, glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::scale(model, glm::vec3(ratio * 0.075f, 0.075f, 0.075f));
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    uiShader.setVec3("color", glm::vec3(1.0f, 1.0f, 1.0f));
+    float alpha = glm::max(2 * (glm::sin(currentMillis() / 1e6) -.5), 0.0);
+    uiShader.setVec4("color", glm::vec4(1.0f, 1.0f, 1.0f, alpha));
     glDrawArrays(GL_TRIANGLES, 0, blueprint.vertexCount);
     glBindVertexArray(0);
 }
@@ -175,8 +176,7 @@ void Renderer::renderUi(float compassAngle, float distance, bool compassVisible)
 void Renderer::render(const Camera &camera) {
     gameShader.use();
     gameShader.setFloat("tileSize", Tile::SIZE);
-    glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float) screenWidth / (float) screenHeight, 0.1f,
-                                            100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float) screenWidth / (float) screenHeight, 0.1f, 100.0f);
     gameShader.setMat4("projection", projection);
     glm::mat4 view = camera.getViewMatrix();
     gameShader.setMat4("view", view);

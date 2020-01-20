@@ -51,12 +51,8 @@ Client::Client() : camera(glm::vec3(0.0f, 1.0f, 0.0f)), netManager("localhost", 
 
     renderer.init();
     netManager.start();
-    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(InitMessage),
-                                                                                    std::make_unique<InitMessageHandler>(
-                                                                                            &playerId, &world)));
-    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(UpdateMessage),
-                                                                                    std::make_unique<UpdateMessageHandler>(
-                                                                                            &world)));
+    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(InitMessage), std::make_unique<InitMessageHandler>(&playerId, &world)));
+    listeners.insert(std::pair<std::type_index, std::unique_ptr<NetMessageHandler>>(typeid(UpdateMessage), std::make_unique<UpdateMessageHandler>(&world)));
     netManager.login();
 }
 
@@ -95,7 +91,6 @@ void Client::mainLoop() {
         glm::vec2 direction = glm::normalize(target - playerPos);
         float angle = acos(glm::dot(direction, glm::normalize(glm::vec2(yIgnoredFront.x, yIgnoredFront.z))));
         angle *= glm::dot(direction, glm::vec2(right.x, right.z)) < 0 ? 1 : -1;
-        renderer.renderUi(angle, glm::distance(target, playerPos), !localPlayer.hasPotion);
 
         renderer.render(camera);
         renderer.render(world, playerId);
@@ -105,7 +100,7 @@ void Client::mainLoop() {
             float visibility = glm::max(timeLeft / 0.5e6, 0.0);
             return visibility;
         };
-
+        
         // & turns stateless to stateful so referencing locale variables is possible 
         world.lasers.erase(std::remove_if(world.lasers.begin(), world.lasers.end(), [&](const Laser &laser) {
             return laserVisibility(laser) <= 0.01;
@@ -115,6 +110,8 @@ void Client::mainLoop() {
         for (const auto &laser : world.lasers) {
             renderer.render(laser, laserVisibility(laser));
         }
+
+        renderer.renderUi(angle, glm::distance(target, playerPos), !localPlayer.hasPotion);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);

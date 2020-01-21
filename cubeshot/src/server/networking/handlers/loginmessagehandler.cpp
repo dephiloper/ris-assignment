@@ -5,8 +5,8 @@ LoginMessageHandler::LoginMessageHandler(NetManager* netManager, World* world) :
 void LoginMessageHandler::handle(const NetMessage& message) {
     LoginMessage msg = dynamic_cast<const LoginMessage&>(message);
     Player player;
+    player.respawn = true;
     // initialize player at random position in the range of the tile size away from the center of the map
-    player.position = { frand() * Tile::SIZE * 2 - Tile::SIZE, 0.4f, frand() * Tile::SIZE * 2 -  Tile::SIZE };
     if (this->world->players.count(msg.senderId) == 0) {
         this->world->players[msg.senderId] = player;
         std::cout << "> player '" << message.senderId << "' logged in" << std::endl;

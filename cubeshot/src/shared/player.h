@@ -16,6 +16,7 @@ struct Player : Intersectible {
     std::vector<Vector3> hitPoints;
     bool hasPotion = false;
     bool enteredNewLocation = false;
+    bool respawn = true;
 
     NOP_STRUCTURE(Player, position, front, hitPoints, hasPotion);
 };

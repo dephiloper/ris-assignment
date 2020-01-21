@@ -47,6 +47,8 @@ void Server::processMessages() {
 
 void Server::updatePlayers(float deltaTime) {
     for(auto& [id, p] : world.players) {
+        checkForRespawn(&p);
+        
         auto input = playerInputs.at(id);
         float velocity = Player::MOVEMENT_SPEED * deltaTime;
         auto loc = Tile::positionToTileLocation(p.position);
@@ -76,8 +78,8 @@ void Server::updatePlayers(float deltaTime) {
             world.lasers.push_back(laser);
             if (!ray.intersectibleId.empty()) {
                 Player* p = &world.players[ray.intersectibleId];
-                p->position = { frand() * Tile::SIZE * 2 - Tile::SIZE, 0.4f, frand() * Tile::SIZE * 2 -  Tile::SIZE };
                 p->hitPoints.push_back(Vector3::from(ray.modelIntersection));
+                p->respawn = true;
                 if (p->hasPotion) {
                     world.potion.position = { frand() * Tile::SIZE * 2 - Tile::SIZE, 0.4f, frand() * Tile::SIZE * 2 -  Tile::SIZE };
                     world.potion.isActive = true;
@@ -101,7 +103,9 @@ void Server::updatePlayers(float deltaTime) {
                     auto location = std::pair(x,z);
                     // create tile only when it is non existent
                     if (globalTiles.count(location) == 0) {
-                        globalTiles[location] = Tile::generateNewTile(location);
+                        std::vector<Vector3> playerPositions;
+                        std::transform(world.players.begin(), world.players.end(), std::back_inserter(playerPositions), [](const std::pair<std::string, Player> &element) { return element.second.position; });
+                        globalTiles[location] = Tile::generateNewTile(location, playerPositions);
                     }
                 }
             }
@@ -227,6 +231,30 @@ void Server::publishWorld() {
         netManager.queueOut.push(msg);
     }
     this->world.lasers.clear();
+}
+
+void Server::checkForRespawn(Player* p) {
+    if (!p->respawn) return;
+    
+    std::vector<Obstacle> obstacles;
+    for (const auto& [loc, tile] : globalTiles) {
+        std::transform(tile.obstacles.begin(), tile.obstacles.end(), std::back_inserter(obstacles), [](Obstacle o) { return o; });
+    }
+
+    bool positionOccupied = true;
+    glm::vec2 randPos;
+    while (positionOccupied) {
+        positionOccupied = false;
+        randPos = { frand() * Tile::SIZE * 2 - Tile::SIZE, frand() * Tile::SIZE * 2 -  Tile::SIZE };
+        for (const auto& obst : obstacles) {
+            if (glm::distance(randPos, glm::vec2(obst.position.x, obst.position.z)) < Player::COLLISION_RADIUS + obst.radius) {
+                positionOccupied = true;
+                break;
+            }
+        }
+    }
+    p->position = Vector3 {randPos.x, 0.4, randPos.y};
+    p->respawn = false;
 }
 
 void Server::removeObsoleteTiles() {

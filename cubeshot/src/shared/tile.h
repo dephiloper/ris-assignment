@@ -15,12 +15,25 @@ public:
     Vector3 scale{SIZE, 0.2f, SIZE};
     std::vector<Obstacle> obstacles;
 
-    static Tile generateNewTile(std::pair<int, int> location) {
+    static Tile generateNewTile(std::pair<int, int> location, std::vector<Vector3> playerPositions) {
         Tile tile;
         tile.position = Vector3{ location.first * tile.scale.x, -0.1, location.second * tile.scale.z };
         for (auto i = 0; i < (int)(SIZE*1.5f); i++) {
             Obstacle obstacle;
-            obstacle.position = tile.position + Vector3{rand() % (int)SIZE - SIZE / 2.0f, 0.6f, rand() % (int)SIZE - SIZE / 2.0f};
+            bool positionOccupied = true;
+            Vector3 randPos;
+            while (positionOccupied) {
+                positionOccupied = false;
+                randPos = tile.position + Vector3{rand() % (int)SIZE - SIZE / 2.0f, 0.0, rand() % (int)SIZE - SIZE / 2.0f};
+                for (const auto& playerPos : playerPositions) {
+                    if (glm::distance(glm::vec2(randPos.x, randPos.z), glm::vec2(playerPos.x, playerPos.z)) < Player::COLLISION_RADIUS + obstacle.radius) {
+                        positionOccupied = true;
+                        break;
+                    }
+                }
+            }
+
+            obstacle.position = Vector3{randPos.x, 0.5, randPos.z};
             obstacle.front = Vector3{0.0, 0.0, 1.0};
             tile.obstacles.push_back(obstacle);
         }

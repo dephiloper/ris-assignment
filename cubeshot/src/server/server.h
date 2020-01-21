@@ -48,6 +48,7 @@ private:
     glm::vec3 moveAndSlide(const glm::vec3& position, const glm::vec3& direction);
     bool checkObstaclesForCollision(const glm::vec3& destination, float playerRadius);
     void publishWorld();
+    void checkForRespawn(Player* p);
     void removeObsoleteTiles();
 public:
     Server();
